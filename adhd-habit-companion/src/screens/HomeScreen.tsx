@@ -4,14 +4,16 @@ import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Battery, Zap, Flame, Check } from 'lucide-react-native';
 import { useHabits } from '../hooks/useHabits';
+import { useDopamine, EnergyLevel } from '../hooks/useDopamine';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 
 export default function HomeScreen() {
   const { habits, toggleHabitCompletion } = useHabits();
+  const { menu } = useDopamine();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const [energyLevel, setEnergyLevel] = useState<'low' | 'balanced' | 'high' | null>(null);
+  const [energyLevel, setEnergyLevel] = useState<EnergyLevel | null>(null);
   const [greeting, setGreeting] = useState('Good Morning!');
 
   useEffect(() => {
@@ -26,13 +28,15 @@ export default function HomeScreen() {
       return !h.completedDates.includes(today);
   });
 
-  const getDopamineSuggestion = (level: string) => {
-    switch(level) {
-        case 'low': return "Drink a glass of water";
-        case 'balanced': return "Do 5 minutes of stretching";
-        case 'high': return "Tackle that one annoying email";
-        default: return "Pick an energy level";
-    }
+  const getDopamineSuggestion = (level: EnergyLevel) => {
+    const tasks = menu[level];
+    if (!tasks || tasks.length === 0) return "Add some tasks in Settings!";
+    // Pick random based on length. Simple random for now.
+    // To make it stable per render, we'd need state, but re-rolling on click/render might be fun?
+    // Let's keep it simple: just pick the first one for now or random?
+    // Random is better for variety.
+    const randomIndex = Math.floor(Math.random() * tasks.length);
+    return tasks[randomIndex];
   };
 
   return (

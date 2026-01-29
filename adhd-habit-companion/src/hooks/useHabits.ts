@@ -42,6 +42,21 @@ export const useHabits = () => {
     }
   };
 
+  const updateHabit = async (id: string, updates: Partial<Omit<Habit, 'id' | 'completedDates' | 'streak' | 'createdAt'>>) => {
+    try {
+      const updated = habits.map(h => {
+        if (h.id === id) {
+          return { ...h, ...updates };
+        }
+        return h;
+      });
+      setHabits(updated);
+      await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
+    } catch (e) {
+      console.error('Failed to update habit', e);
+    }
+  };
+
   const toggleHabitCompletion = async (id: string, date: string) => {
     try {
       const updated = habits.map(h => {
@@ -51,7 +66,7 @@ export const useHabits = () => {
             ? h.completedDates.filter(d => d !== date)
             : [...h.completedDates, date];
 
-          const newStreak = calculateStreak(newCompletedDates);
+          const newStreak = calculateStreak(newCompletedDates, h.frequency || 'daily');
 
           return { ...h, completedDates: newCompletedDates, streak: newStreak };
         }
@@ -94,45 +109,77 @@ export const useHabits = () => {
     return history;
   }
 
-  return { habits, isLoading, addHabit, toggleHabitCompletion, deleteHabit, refresh: loadHabits, getWeeklyHistory };
+  return { habits, isLoading, addHabit, updateHabit, toggleHabitCompletion, deleteHabit, refresh: loadHabits, getWeeklyHistory };
 };
 
-function calculateStreak(dates: string[]): number {
+function getMonday(d: Date) {
+  const date = new Date(d);
+  const day = date.getDay();
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+  date.setDate(diff);
+  date.setHours(0,0,0,0);
+  return date;
+}
+
+function calculateStreak(dates: string[], frequency: 'daily' | 'weekly'): number {
   if (!dates || dates.length === 0) return 0;
 
   // Sort dates descending
   const sortedDates = [...dates].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
 
-  const today = new Date().toISOString().split('T')[0];
-  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  if (frequency === 'daily') {
+      const today = new Date().toISOString().split('T')[0];
+      const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
 
-  // If the most recent completion isn't today or yesterday, streak is broken (0).
-  // Exception: if the user just started and hasn't done today yet, but did yesterday, streak is alive.
-  // Actually, standard streak logic:
-  // Count consecutive days going back from the most recent completion.
-  // BUT, if the most recent completion is older than yesterday, the current streak is effectively 0.
+      const lastCompletion = sortedDates[0];
+      if (lastCompletion !== today && lastCompletion !== yesterday) {
+        return 0;
+      }
 
-  const lastCompletion = sortedDates[0];
-  if (lastCompletion !== today && lastCompletion !== yesterday) {
-    return 0;
+      let streak = 0;
+      let currentDate = new Date(lastCompletion);
+
+      for (const dateStr of sortedDates) {
+        const expectedDateStr = currentDate.toISOString().split('T')[0];
+
+        if (dateStr === expectedDateStr) {
+          streak++;
+          currentDate.setDate(currentDate.getDate() - 1);
+        } else {
+          break;
+        }
+      }
+      return streak;
+  } else {
+      // Weekly logic
+      // Check if last completion was this week or last week
+      const lastCompletion = new Date(sortedDates[0]);
+      const lastCompletionMonday = getMonday(lastCompletion);
+      const thisMonday = getMonday(new Date());
+      const lastWeekMonday = new Date(thisMonday);
+      lastWeekMonday.setDate(lastWeekMonday.getDate() - 7);
+
+      if (lastCompletionMonday.getTime() < lastWeekMonday.getTime()) {
+          return 0;
+      }
+
+      let streak = 0;
+      // We need to count unique consecutive weeks
+      // Iterate dates, convert to week mondays, dedup, count consecutive
+
+      let currentMondayToCheck = lastCompletionMonday;
+      let uniqueWeeks = new Set<number>();
+
+      // Build set of completion weeks (timestamps)
+      for (const d of sortedDates) {
+          uniqueWeeks.add(getMonday(new Date(d)).getTime());
+      }
+
+      while (uniqueWeeks.has(currentMondayToCheck.getTime())) {
+          streak++;
+          currentMondayToCheck.setDate(currentMondayToCheck.getDate() - 7);
+      }
+
+      return streak;
   }
-
-  let streak = 0;
-  let currentDate = new Date(lastCompletion);
-
-  for (const dateStr of sortedDates) {
-    // Check if this date matches the expected current date in the sequence
-    const expectedDateStr = currentDate.toISOString().split('T')[0];
-
-    if (dateStr === expectedDateStr) {
-      streak++;
-      // Move expected date back by one day
-      currentDate.setDate(currentDate.getDate() - 1);
-    } else {
-      // Sequence broken
-      break;
-    }
-  }
-
-  return streak;
 }

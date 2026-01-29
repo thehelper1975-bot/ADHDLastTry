@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { CONFIG } from '../constants/config';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Crown, ChevronRight, Shield, Heart, FileText } from 'lucide-react-native';
+import { Crown, ChevronRight, Shield, Heart, FileText, Sparkles } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -68,6 +68,16 @@ export default function SettingsScreen() {
                             thumbColor="#FFF"
                         />
                     </View>
+                    <TouchableOpacity
+                        style={[styles.row, { marginTop: 8 }]}
+                        onPress={() => navigation.navigate('DopamineSettings')}
+                    >
+                        <View>
+                            <Text style={styles.rowLabel}>Dopamine Menu</Text>
+                            <Text style={styles.rowDesc}>Customize your energy boosters</Text>
+                        </View>
+                        <ChevronRight size={20} color={COLORS.textSecondary} />
+                    </TouchableOpacity>
                 </View>
 
                 <View style={styles.section}>
