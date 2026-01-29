@@ -2,6 +2,7 @@ import { Platform } from 'react-native';
 
 export const CONFIG = {
   APP_NAME: 'ADHD Habit Companion',
+  APP_VERSION: '1.0.0',
   BUNDLE_ID: 'com.medapps.adhdhabit',
 
   URLS: {

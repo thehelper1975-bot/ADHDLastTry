@@ -6,13 +6,21 @@ import { useHabits } from '../hooks/useHabits';
 import { TrendingUp, Award, Calendar } from 'lucide-react-native';
 
 export default function ProgressScreen() {
-  const { habits } = useHabits();
+  const { habits, getWeeklyHistory } = useHabits();
 
   const totalCompletions = habits.reduce((acc, h) => acc + h.completedDates.length, 0);
   const currentLongestStreak = Math.max(0, ...habits.map(h => h.streak));
+  const weeklyData = getWeeklyHistory();
+  const maxDaily = Math.max(1, ...weeklyData); // Avoid division by zero
 
-  // Weekly view placeholder
-  const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+  // Generate labels for last 7 days (e.g. "M", "T", etc)
+  const days = [];
+  const today = new Date();
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    days.push(d.toLocaleDateString('en-US', { weekday: 'narrow' }));
+  }
 
   return (
     <LinearGradient colors={GRADIENTS.background} style={styles.container}>
@@ -38,12 +46,19 @@ export default function ProgressScreen() {
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Weekly Consistency</Text>
                     <View style={styles.chartContainer}>
-                        {days.map((day, index) => (
-                            <View key={index} style={styles.barContainer}>
-                                <View style={[styles.bar, { height: 40 + Math.random() * 60, backgroundColor: index === 6 ? COLORS.primary : COLORS.surface }]} />
-                                <Text style={styles.dayLabel}>{day}</Text>
-                            </View>
-                        ))}
+                        {days.map((day, index) => {
+                            const count = weeklyData[index];
+                            const height = (count / maxDaily) * 100; // Normalize height to max 100px (approx)
+                            return (
+                                <View key={index} style={styles.barContainer}>
+                                    <View style={[styles.bar, {
+                                        height: Math.max(4, height), // Min height so bar is visible
+                                        backgroundColor: count > 0 ? COLORS.primary : COLORS.surface
+                                    }]} />
+                                    <Text style={styles.dayLabel}>{day}</Text>
+                                </View>
+                            );
+                        })}
                     </View>
                 </View>
 

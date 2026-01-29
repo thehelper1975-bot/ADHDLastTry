@@ -11,6 +11,7 @@ export default function AddHabitScreen() {
   const navigation = useNavigation();
 
   const [title, setTitle] = useState('');
+  const [frequency, setFrequency] = useState<'daily' | 'weekly'>('daily');
   const [isBundled, setIsBundled] = useState(false);
   const [bundledTask, setBundledTask] = useState('');
 
@@ -21,7 +22,7 @@ export default function AddHabitScreen() {
           title,
           isBundled,
           bundledTask: isBundled ? bundledTask : undefined,
-          frequency: 'daily'
+          frequency
       });
 
       navigation.goBack();
@@ -47,6 +48,22 @@ export default function AddHabitScreen() {
                     onChangeText={setTitle}
                     autoFocus
                 />
+
+                <Text style={styles.label}>Frequency</Text>
+                <View style={styles.frequencyRow}>
+                    <TouchableOpacity
+                        style={[styles.frequencyBtn, frequency === 'daily' && styles.frequencyBtnActive]}
+                        onPress={() => setFrequency('daily')}
+                    >
+                        <Text style={[styles.frequencyText, frequency === 'daily' && styles.frequencyTextActive]}>Daily</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.frequencyBtn, frequency === 'weekly' && styles.frequencyBtnActive]}
+                        onPress={() => setFrequency('weekly')}
+                    >
+                        <Text style={[styles.frequencyText, frequency === 'weekly' && styles.frequencyTextActive]}>Weekly</Text>
+                    </TouchableOpacity>
+                </View>
 
                 <View style={styles.switchRow}>
                     <View>
@@ -94,6 +111,14 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.surface, color: COLORS.text, padding: 16, borderRadius: 12,
         fontSize: 16, marginBottom: 24, borderWidth: 1, borderColor: COLORS.border
     },
+    frequencyRow: { flexDirection: 'row', gap: 12, marginBottom: 24 },
+    frequencyBtn: {
+        flex: 1, padding: 12, borderRadius: 8, borderWidth: 1, borderColor: COLORS.border,
+        alignItems: 'center', backgroundColor: COLORS.surface
+    },
+    frequencyBtnActive: { borderColor: COLORS.secondary, backgroundColor: 'rgba(59, 130, 246, 0.2)' },
+    frequencyText: { color: COLORS.textSecondary, fontWeight: '600' },
+    frequencyTextActive: { color: COLORS.secondary },
     switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
     hint: { color: COLORS.textSecondary, fontSize: 14 },
     bundledInputContainer: { marginTop: 8 },

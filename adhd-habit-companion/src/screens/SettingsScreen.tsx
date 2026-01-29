@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Switch, TouchableOpacity, SafeAreaView, Linking } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { CONFIG } from '../constants/config';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -9,10 +10,23 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { useSubscription } from '../contexts/SubscriptionContext';
 
+const HYPERFOCUS_KEY = '@hyperfocus_v1';
+
 export default function SettingsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { isPremium } = useSubscription();
   const [hyperfocus, setHyperfocus] = useState(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem(HYPERFOCUS_KEY).then(val => {
+        if (val) setHyperfocus(JSON.parse(val));
+    });
+  }, []);
+
+  const toggleHyperfocus = async (val: boolean) => {
+    setHyperfocus(val);
+    await AsyncStorage.setItem(HYPERFOCUS_KEY, JSON.stringify(val));
+  };
 
   const openLink = (url: string) => Linking.openURL(url);
 
@@ -49,7 +63,7 @@ export default function SettingsScreen() {
                         </View>
                         <Switch
                             value={hyperfocus}
-                            onValueChange={setHyperfocus}
+                            onValueChange={toggleHyperfocus}
                             trackColor={{ false: COLORS.surface, true: COLORS.secondary }}
                             thumbColor="#FFF"
                         />
@@ -79,6 +93,10 @@ export default function SettingsScreen() {
                         </View>
                         <ChevronRight size={20} color={COLORS.textSecondary} />
                     </TouchableOpacity>
+                </View>
+
+                <View style={styles.footer}>
+                    <Text style={styles.versionText}>v{CONFIG.APP_VERSION}</Text>
                 </View>
             </View>
         </SafeAreaView>
@@ -113,5 +131,7 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.surface, padding: 16, borderRadius: 12, marginBottom: 8
     },
     linkLeft: { flexDirection: 'row', gap: 12, alignItems: 'center' },
-    linkText: { color: COLORS.text, fontSize: 16 }
+    linkText: { color: COLORS.text, fontSize: 16 },
+    footer: { padding: 20, alignItems: 'center' },
+    versionText: { color: COLORS.textSecondary, opacity: 0.5 }
 });
