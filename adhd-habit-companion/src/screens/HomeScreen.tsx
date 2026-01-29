@@ -1,37 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Battery, Zap, Flame } from 'lucide-react-native';
+import { Battery, Zap, Flame, Check } from 'lucide-react-native';
 import { useHabits } from '../hooks/useHabits';
+import { useDopamine, EnergyLevel } from '../hooks/useDopamine';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 
 export default function HomeScreen() {
-  const { habits } = useHabits();
+  const { habits, toggleHabitCompletion } = useHabits();
+  const { menu } = useDopamine();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const [energyLevel, setEnergyLevel] = useState<'low' | 'balanced' | 'high' | null>(null);
+  const [energyLevel, setEnergyLevel] = useState<EnergyLevel | null>(null);
+  const [greeting, setGreeting] = useState('Good Morning!');
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting('Good Morning!');
+    else if (hour < 18) setGreeting('Good Afternoon!');
+    else setGreeting('Good Evening!');
+  }, []);
 
   const incompleteHabits = habits.filter(h => {
       const today = new Date().toISOString().split('T')[0];
       return !h.completedDates.includes(today);
   });
 
-  const getDopamineSuggestion = (level: string) => {
-    switch(level) {
-        case 'low': return "Drink a glass of water";
-        case 'balanced': return "Do 5 minutes of stretching";
-        case 'high': return "Tackle that one annoying email";
-        default: return "Pick an energy level";
-    }
+  const getDopamineSuggestion = (level: EnergyLevel) => {
+    const tasks = menu[level];
+    if (!tasks || tasks.length === 0) return "Add some tasks in Settings!";
+    // Pick random based on length. Simple random for now.
+    // To make it stable per render, we'd need state, but re-rolling on click/render might be fun?
+    // Let's keep it simple: just pick the first one for now or random?
+    // Random is better for variety.
+    const randomIndex = Math.floor(Math.random() * tasks.length);
+    return tasks[randomIndex];
   };
 
   return (
     <LinearGradient colors={GRADIENTS.background} style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.content}>
-            <Text style={styles.greeting}>Good Morning!</Text>
+            <Text style={styles.greeting}>{greeting}</Text>
             <Text style={styles.subtitle}>What's your energy level right now?</Text>
 
             <View style={styles.energyContainer}>
@@ -59,14 +71,23 @@ export default function HomeScreen() {
             <Text style={styles.sectionTitle}>Today's Focus</Text>
             {incompleteHabits.length > 0 ? (
                 incompleteHabits.slice(0, 3).map(habit => (
-                    <View key={habit.id} style={styles.habitCard}>
-                        <Text style={styles.habitTitle}>{habit.title}</Text>
-                        {habit.isBundled && <Text style={styles.bundledText}>+ {habit.bundledTask}</Text>}
-                    </View>
+                    <TouchableOpacity
+                        key={habit.id}
+                        style={styles.habitCard}
+                        onPress={() => toggleHabitCompletion(habit.id, new Date().toISOString().split('T')[0])}
+                    >
+                        <View>
+                            <Text style={styles.habitTitle}>{habit.title}</Text>
+                            {habit.isBundled && <Text style={styles.bundledText}>+ {habit.bundledTask}</Text>}
+                        </View>
+                        <View style={styles.checkBtn}>
+                            <Check size={20} color={COLORS.textSecondary} />
+                        </View>
+                    </TouchableOpacity>
                 ))
             ) : (
                 <View style={styles.emptyState}>
-                    <Text style={styles.emptyText}>No habits set for today yet!</Text>
+                    <Text style={styles.emptyText}>{habits.length > 0 ? "All done for now!" : "No habits set for today yet!"}</Text>
                     <TouchableOpacity onPress={() => navigation.navigate('AddHabit')}>
                         <Text style={styles.linkText}>Add a habit</Text>
                     </TouchableOpacity>
@@ -101,6 +122,10 @@ const styles = StyleSheet.create({
     habitCard: {
         backgroundColor: COLORS.surface, padding: 16, borderRadius: 12, marginBottom: 12,
         flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'
+    },
+    checkBtn: {
+        width: 32, height: 32, borderRadius: 16, borderWidth: 1, borderColor: COLORS.border,
+        alignItems: 'center', justifyContent: 'center'
     },
     habitTitle: { color: COLORS.text, fontSize: 16, fontWeight: '500' },
     bundledText: { color: COLORS.accent, fontSize: 14 },

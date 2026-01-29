@@ -14,12 +14,14 @@ import HabitListScreen from '../screens/HabitListScreen';
 import ProgressScreen from '../screens/ProgressScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import AddHabitScreen from '../screens/AddHabitScreen';
+import DopamineSettingsScreen from '../screens/DopamineSettingsScreen';
 
 export type RootStackParamList = {
   Onboarding: undefined;
   Main: undefined;
   Paywall: { fromOnboarding?: boolean } | undefined;
   AddHabit: { habitId?: string } | undefined;
+  DopamineSettings: undefined;
 };
 
 export type MainTabParamList = {
@@ -101,6 +103,11 @@ export default function AppNavigator() {
         <Stack.Screen
             name="AddHabit"
             component={AddHabitScreen}
+            options={{ presentation: 'modal' }}
+        />
+        <Stack.Screen
+            name="DopamineSettings"
+            component={DopamineSettingsScreen}
             options={{ presentation: 'modal' }}
         />
       </Stack.Navigator>

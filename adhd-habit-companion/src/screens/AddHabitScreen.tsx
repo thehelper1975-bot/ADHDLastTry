@@ -1,28 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Switch, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useHabits } from '../hooks/useHabits';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { X } from 'lucide-react-native';
+import { RootStackParamList } from '../navigation/AppNavigator';
+
+type AddHabitRouteProp = RouteProp<RootStackParamList, 'AddHabit'>;
 
 export default function AddHabitScreen() {
-  const { addHabit } = useHabits();
+  const { habits, addHabit, updateHabit } = useHabits();
   const navigation = useNavigation();
+  const route = useRoute<AddHabitRouteProp>();
+  const habitId = route.params?.habitId;
 
   const [title, setTitle] = useState('');
+  const [frequency, setFrequency] = useState<'daily' | 'weekly'>('daily');
   const [isBundled, setIsBundled] = useState(false);
   const [bundledTask, setBundledTask] = useState('');
+
+  useEffect(() => {
+    if (habitId) {
+      const existing = habits.find(h => h.id === habitId);
+      if (existing) {
+        setTitle(existing.title);
+        setFrequency(existing.frequency);
+        setIsBundled(existing.isBundled);
+        setBundledTask(existing.bundledTask || '');
+      }
+    }
+  }, [habitId, habits]);
 
   const handleSave = async () => {
       if (!title.trim()) return;
 
-      await addHabit({
+      const habitData = {
           title,
           isBundled,
           bundledTask: isBundled ? bundledTask : undefined,
-          frequency: 'daily'
-      });
+          frequency
+      };
+
+      if (habitId) {
+        await updateHabit(habitId, habitData);
+      } else {
+        await addHabit(habitData);
+      }
 
       navigation.goBack();
   };
@@ -31,7 +55,7 @@ export default function AddHabitScreen() {
     <LinearGradient colors={GRADIENTS.background} style={styles.container}>
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.header}>
-                <Text style={styles.title}>New Habit</Text>
+                <Text style={styles.title}>{habitId ? 'Edit Habit' : 'New Habit'}</Text>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <X size={24} color={COLORS.textSecondary} />
                 </TouchableOpacity>
@@ -47,6 +71,22 @@ export default function AddHabitScreen() {
                     onChangeText={setTitle}
                     autoFocus
                 />
+
+                <Text style={styles.label}>Frequency</Text>
+                <View style={styles.frequencyRow}>
+                    <TouchableOpacity
+                        style={[styles.frequencyBtn, frequency === 'daily' && styles.frequencyBtnActive]}
+                        onPress={() => setFrequency('daily')}
+                    >
+                        <Text style={[styles.frequencyText, frequency === 'daily' && styles.frequencyTextActive]}>Daily</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.frequencyBtn, frequency === 'weekly' && styles.frequencyBtnActive]}
+                        onPress={() => setFrequency('weekly')}
+                    >
+                        <Text style={[styles.frequencyText, frequency === 'weekly' && styles.frequencyTextActive]}>Weekly</Text>
+                    </TouchableOpacity>
+                </View>
 
                 <View style={styles.switchRow}>
                     <View>
@@ -75,7 +115,7 @@ export default function AddHabitScreen() {
                 )}
 
                 <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
-                    <Text style={styles.saveBtnText}>Create Habit</Text>
+                    <Text style={styles.saveBtnText}>{habitId ? 'Update Habit' : 'Create Habit'}</Text>
                 </TouchableOpacity>
             </View>
         </SafeAreaView>
@@ -94,6 +134,14 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.surface, color: COLORS.text, padding: 16, borderRadius: 12,
         fontSize: 16, marginBottom: 24, borderWidth: 1, borderColor: COLORS.border
     },
+    frequencyRow: { flexDirection: 'row', gap: 12, marginBottom: 24 },
+    frequencyBtn: {
+        flex: 1, padding: 12, borderRadius: 8, borderWidth: 1, borderColor: COLORS.border,
+        alignItems: 'center', backgroundColor: COLORS.surface
+    },
+    frequencyBtnActive: { borderColor: COLORS.secondary, backgroundColor: 'rgba(59, 130, 246, 0.2)' },
+    frequencyText: { color: COLORS.textSecondary, fontWeight: '600' },
+    frequencyTextActive: { color: COLORS.secondary },
     switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
     hint: { color: COLORS.textSecondary, fontSize: 14 },
     bundledInputContainer: { marginTop: 8 },

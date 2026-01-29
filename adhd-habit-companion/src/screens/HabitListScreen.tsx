@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useHabits } from '../hooks/useHabits';
@@ -13,6 +13,17 @@ export default function HabitListScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const today = new Date().toISOString().split('T')[0];
 
+  const handleDelete = (id: string) => {
+    Alert.alert(
+      "Delete Habit",
+      "Are you sure you want to delete this habit? This cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: () => deleteHabit(id) }
+      ]
+    );
+  };
+
   const renderItem = ({ item }: { item: any }) => {
       const isCompleted = item.completedDates.includes(today);
       return (
@@ -23,12 +34,15 @@ export default function HabitListScreen() {
               >
                   {isCompleted && <Check size={16} color="#FFF" />}
               </TouchableOpacity>
-              <View style={styles.cardContent}>
+              <TouchableOpacity
+                style={styles.cardContent}
+                onPress={() => navigation.navigate('AddHabit', { habitId: item.id })}
+              >
                   <Text style={[styles.cardTitle, isCompleted && styles.completedText]}>{item.title}</Text>
                   {item.isBundled && <Text style={styles.bundledText}>+ {item.bundledTask}</Text>}
                   <Text style={styles.streakText}>Streak: {item.streak} days</Text>
-              </View>
-              <TouchableOpacity onPress={() => deleteHabit(item.id)}>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleDelete(item.id)}>
                   <Trash2 size={20} color={COLORS.error} />
               </TouchableOpacity>
           </View>
