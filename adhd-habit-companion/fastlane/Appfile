@@ -1,0 +1,3 @@
+app_identifier "com.medapps.adhdhabit" # The bundle identifier of your app
+apple_id "baddoumohamed.mb@gmail.com" # Your Apple email address
+team_id "VS3MUHT8KK" # Developer Portal Team ID

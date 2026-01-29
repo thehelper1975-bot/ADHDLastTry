@@ -1,0 +1,43 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Create App ID and App Store Connect Entry"
+  lane :init_app do
+    produce(
+      username: "baddoumohamed.mb@gmail.com",
+      team_id: "VS3MUHT8KK",
+      app_identifier: "com.medapps.adhdhabit",
+      app_name: "ADHD Habit Companion",
+      language: "English",
+      app_version: "1.0",
+      sku: "adhdhabit2025"
+    )
+  end
+
+  desc "Upload metadata to App Store Connect"
+  lane :metadata do
+    deliver(
+      skip_binary_upload: true,
+      skip_screenshots: false
+    )
+  end
+
+  desc "Upload screenshots only"
+  lane :screenshots do
+    deliver(
+      skip_binary_upload: true,
+      skip_metadata: true,
+      overwrite_screenshots: true
+    )
+  end
+
+  desc "Build with EAS"
+  lane :build do
+    sh "eas build --platform ios --profile production"
+  end
+
+  desc "Submit for review"
+  lane :submit do
+    sh "eas submit --platform ios"
+  end
+end
