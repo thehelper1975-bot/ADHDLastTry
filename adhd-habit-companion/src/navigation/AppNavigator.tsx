@@ -5,7 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useOnboarding } from '../contexts/OnboardingContext';
 import { useSubscription } from '../contexts/SubscriptionContext';
 import { COLORS } from '../constants/colors';
-import { Home, List, BarChart2, Settings } from 'lucide-react-native';
+import { Home, List, BarChart2, Settings, Zap } from 'lucide-react-native';
 
 import OnboardingScreen from '../screens/OnboardingScreen';
 import PaywallScreen from '../screens/PaywallScreen';
@@ -14,6 +14,7 @@ import HabitListScreen from '../screens/HabitListScreen';
 import ProgressScreen from '../screens/ProgressScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import AddHabitScreen from '../screens/AddHabitScreen';
+import DopamineMenuScreen from '../screens/DopamineMenuScreen';
 
 export type RootStackParamList = {
   Onboarding: undefined;
@@ -26,6 +27,7 @@ export type MainTabParamList = {
   Home: undefined;
   Habits: undefined;
   Progress: undefined;
+  Menu: undefined;
   Settings: undefined;
 };
 
@@ -64,6 +66,13 @@ function MainNavigator() {
         component={ProgressScreen}
         options={{
           tabBarIcon: ({ color, size }) => <BarChart2 color={color} size={size} />
+        }}
+      />
+      <Tab.Screen
+        name="Menu"
+        component={DopamineMenuScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => <Zap color={color} size={size} />
         }}
       />
       <Tab.Screen

@@ -46,7 +46,7 @@ export const useHabits = () => {
           ? h.completedDates.filter(d => d !== date)
           : [...h.completedDates, date];
 
-        const newStreak = calculateStreak(newCompletedDates);
+        const newStreak = calculateStreak(newCompletedDates, h.frequency);
 
         return { ...h, completedDates: newCompletedDates, streak: newStreak };
       }
@@ -65,7 +65,58 @@ export const useHabits = () => {
   return { habits, isLoading, addHabit, toggleHabitCompletion, deleteHabit, refresh: loadHabits };
 };
 
-function calculateStreak(dates: string[]): number {
-    // Placeholder for actual streak logic
-    return dates.length;
+function calculateStreak(dates: string[], frequency: 'daily' | 'weekly' = 'daily'): number {
+  if (dates.length === 0) return 0;
+
+  const sortedDates = [...dates].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+
+  if (frequency === 'daily') {
+    let streak = 1;
+    let currentDate = new Date(sortedDates[0]);
+
+    for (let i = 1; i < sortedDates.length; i++) {
+      const prevDate = new Date(sortedDates[i]);
+      // Calculate difference in days
+      const diffTime = currentDate.getTime() - prevDate.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays === 1) {
+        streak++;
+        currentDate = prevDate;
+      } else if (diffDays === 0) {
+        continue;
+      } else {
+        break;
+      }
+    }
+    return streak;
+  } else {
+    // Weekly
+    const getMondayTimestamp = (dateStr: string) => {
+        const d = new Date(dateStr);
+        const day = d.getUTCDay(); // 0=Sun, 1=Mon...
+        const diff = d.getUTCDate() - day + (day === 0 ? -6 : 1);
+        d.setUTCDate(diff);
+        d.setUTCHours(0, 0, 0, 0);
+        return d.getTime();
+    };
+
+    const uniqueMondays = Array.from(new Set(sortedDates.map(getMondayTimestamp)))
+        .sort((a, b) => b - a);
+
+    let streak = 1;
+    let current = uniqueMondays[0];
+
+    for (let i = 1; i < uniqueMondays.length; i++) {
+        const prev = uniqueMondays[i];
+        const diff = (current - prev) / (1000 * 60 * 60 * 24);
+        if (Math.round(diff) === 7) {
+            streak++;
+            current = prev;
+        } else {
+            break;
+        }
+    }
+    return streak;
+  }
 }
