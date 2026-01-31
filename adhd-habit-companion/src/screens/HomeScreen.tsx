@@ -1,31 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Battery, Zap, Flame } from 'lucide-react-native';
+import { Battery, Zap, Flame, Edit } from 'lucide-react-native';
 import { useHabits } from '../hooks/useHabits';
+import { useDopamine } from '../hooks/useDopamine';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 
 export default function HomeScreen() {
   const { habits } = useHabits();
+  const { menuItems } = useDopamine();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [energyLevel, setEnergyLevel] = useState<'low' | 'balanced' | 'high' | null>(null);
+  const [suggestion, setSuggestion] = useState<string | null>(null);
 
   const incompleteHabits = habits.filter(h => {
       const today = new Date().toISOString().split('T')[0];
       return !h.completedDates.includes(today);
   });
 
-  const getDopamineSuggestion = (level: string) => {
-    switch(level) {
-        case 'low': return "Drink a glass of water";
-        case 'balanced': return "Do 5 minutes of stretching";
-        case 'high': return "Tackle that one annoying email";
-        default: return "Pick an energy level";
+  useEffect(() => {
+    if (energyLevel) {
+        const items = menuItems[energyLevel];
+        if (items && items.length > 0) {
+            const randomItem = items[Math.floor(Math.random() * items.length)];
+            setSuggestion(randomItem);
+        } else {
+            setSuggestion("No tasks yet! Add some to your menu.");
+        }
+    } else {
+        setSuggestion(null);
     }
-  };
+  }, [energyLevel, menuItems]);
 
   return (
     <LinearGradient colors={GRADIENTS.background} style={styles.container}>
@@ -49,10 +57,15 @@ export default function HomeScreen() {
                 </TouchableOpacity>
             </View>
 
-            {energyLevel && (
+            {energyLevel && suggestion && (
                 <View style={styles.suggestionCard}>
-                    <Text style={styles.suggestionTitle}>Dopamine Menu Suggestion</Text>
-                    <Text style={styles.suggestionText}>{getDopamineSuggestion(energyLevel)}</Text>
+                    <View style={styles.suggestionHeader}>
+                        <Text style={styles.suggestionTitle}>Dopamine Menu Suggestion</Text>
+                        <TouchableOpacity onPress={() => navigation.navigate('DopamineMenu')}>
+                            <Edit size={16} color={COLORS.accent} />
+                        </TouchableOpacity>
+                    </View>
+                    <Text style={styles.suggestionText}>{suggestion}</Text>
                 </View>
             )}
 
@@ -95,7 +108,8 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(245, 158, 11, 0.1)', padding: 16, borderRadius: 12, marginBottom: 32,
         borderLeftWidth: 4, borderLeftColor: COLORS.accent
     },
-    suggestionTitle: { color: COLORS.accent, fontWeight: 'bold', marginBottom: 4 },
+    suggestionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+    suggestionTitle: { color: COLORS.accent, fontWeight: 'bold' },
     suggestionText: { color: COLORS.text, fontSize: 16 },
     sectionTitle: { fontSize: 20, fontWeight: 'bold', color: COLORS.text, marginBottom: 16 },
     habitCard: {
