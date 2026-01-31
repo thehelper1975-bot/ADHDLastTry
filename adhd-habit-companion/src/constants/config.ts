@@ -21,4 +21,5 @@ export const CONFIG = {
   },
 
   ONBOARDING_KEY: '@onboarding_complete_v1',
+  DOPAMINE_MENU_KEY: '@dopamine_v1',
 };

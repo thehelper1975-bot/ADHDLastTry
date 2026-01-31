@@ -1,0 +1,16 @@
+Starting project at /app/adhd-habit-companion
+Starting Metro Bundler
+Waiting on http://localhost:8081
+Logs for your project will appear below.
+Web ./index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web ./index.ts ▓▓▓▓▓▓▓▓░░░░░░░░ 53.2% (180/304)
+Web ./index.ts ▓▓▓▓▓▓▓▓░░░░░░░░ 53.2% ( 409/2136)
+Web ./index.ts ▓▓▓▓▓▓▓▓░░░░░░░░ 53.2% (1436/2136)
+Web ./index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░ 87.9% (2129/2365)
+Web ./index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░ 90.5% (2432/2557)
+Web ./index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 99.3% (2729/2738)
+Web Bundled 21638ms index.ts (2740 modules)
+ LOG  [web] Logs will appear in the browser console
+Web ./index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 258ms index.ts (1 module)
+ LOG  [web] Logs will appear in the browser console

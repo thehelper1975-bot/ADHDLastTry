@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { OnboardingProvider } from './src/contexts/OnboardingContext';
 import { SubscriptionProvider } from './src/contexts/SubscriptionContext';
+import { DopamineProvider } from './src/contexts/DopamineContext';
 import AppNavigator from './src/navigation/AppNavigator';
 
 export default function App() {
@@ -14,7 +15,9 @@ export default function App() {
         <StatusBar style="light" />
         <SubscriptionProvider>
             <OnboardingProvider>
-                <AppNavigator />
+                <DopamineProvider>
+                    <AppNavigator />
+                </DopamineProvider>
             </OnboardingProvider>
         </SubscriptionProvider>
       </SafeAreaProvider>
