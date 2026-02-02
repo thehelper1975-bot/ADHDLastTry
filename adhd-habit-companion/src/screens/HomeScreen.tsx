@@ -35,15 +35,30 @@ export default function HomeScreen() {
             <Text style={styles.subtitle}>What's your energy level right now?</Text>
 
             <View style={styles.energyContainer}>
-                <TouchableOpacity onPress={() => setEnergyLevel('low')} style={[styles.energyBtn, energyLevel === 'low' && styles.energyBtnActive]}>
+                <TouchableOpacity
+                  onPress={() => setEnergyLevel('low')}
+                  style={[styles.energyBtn, energyLevel === 'low' && styles.energyBtnActive]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Low Energy Level"
+                >
                     <Battery size={24} color={energyLevel === 'low' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>Low</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setEnergyLevel('balanced')} style={[styles.energyBtn, energyLevel === 'balanced' && styles.energyBtnActive]}>
+                <TouchableOpacity
+                  onPress={() => setEnergyLevel('balanced')}
+                  style={[styles.energyBtn, energyLevel === 'balanced' && styles.energyBtnActive]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Balanced Energy Level"
+                >
                     <Zap size={24} color={energyLevel === 'balanced' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>Balanced</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setEnergyLevel('high')} style={[styles.energyBtn, energyLevel === 'high' && styles.energyBtnActive]}>
+                <TouchableOpacity
+                  onPress={() => setEnergyLevel('high')}
+                  style={[styles.energyBtn, energyLevel === 'high' && styles.energyBtnActive]}
+                  accessibilityRole="button"
+                  accessibilityLabel="High Energy Level"
+                >
                     <Flame size={24} color={energyLevel === 'high' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>High</Text>
                 </TouchableOpacity>
@@ -67,7 +82,11 @@ export default function HomeScreen() {
             ) : (
                 <View style={styles.emptyState}>
                     <Text style={styles.emptyText}>No habits set for today yet!</Text>
-                    <TouchableOpacity onPress={() => navigation.navigate('AddHabit')}>
+                    <TouchableOpacity
+                      onPress={() => navigation.navigate('AddHabit')}
+                      accessibilityRole="button"
+                      accessibilityLabel="Add a new habit"
+                    >
                         <Text style={styles.linkText}>Add a habit</Text>
                     </TouchableOpacity>
                 </View>

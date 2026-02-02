@@ -20,40 +20,56 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
     const init = async () => {
       try {
-        if (CONFIG.REVENUECAT.API_KEY) {
-            await Purchases.configure({ apiKey: CONFIG.REVENUECAT.API_KEY! });
+        const apiKey = CONFIG.REVENUECAT.API_KEY;
+        if (apiKey && !apiKey.includes('placeholder')) {
+            await Purchases.configure({ apiKey });
 
             const info = await Purchases.getCustomerInfo();
-            setCustomerInfo(info);
-            setIsPremium(info.entitlements.active[CONFIG.REVENUECAT.ENTITLEMENT_ID] !== undefined);
+            if (isMounted) {
+              setCustomerInfo(info);
+              setIsPremium(info.entitlements.active[CONFIG.REVENUECAT.ENTITLEMENT_ID] !== undefined);
+            }
 
             const offerings = await Purchases.getOfferings();
-            setOfferings(offerings.current);
+            if (isMounted) {
+              setOfferings(offerings.current);
+            }
+
+            const updateListener = (info: CustomerInfo) => {
+                if (isMounted) {
+                  setCustomerInfo(info);
+                  setIsPremium(info.entitlements.active[CONFIG.REVENUECAT.ENTITLEMENT_ID] !== undefined);
+                }
+            };
+            Purchases.addCustomerInfoUpdateListener(updateListener);
+        } else {
+          console.warn('RevenueCat API Key is a placeholder. Billing features disabled.');
         }
       } catch (e) {
         console.error('RevenueCat init error:', e);
       } finally {
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       }
     };
 
     init();
 
-    const updateListener = (info: CustomerInfo) => {
-        setCustomerInfo(info);
-        setIsPremium(info.entitlements.active[CONFIG.REVENUECAT.ENTITLEMENT_ID] !== undefined);
+    return () => {
+      isMounted = false;
     };
-
-    Purchases.addCustomerInfoUpdateListener(updateListener);
-
-    // Cleanup not strictly necessary for singleton but good practice if it returned a remove function
-    // Purchases.removeCustomerInfoUpdateListener(updateListener);
-
   }, []);
 
   const purchasePackage = async (packageId: string): Promise<boolean> => {
+    const apiKey = CONFIG.REVENUECAT.API_KEY;
+    if (!apiKey || apiKey.includes('placeholder')) {
+        console.warn('Cannot purchase: RevenueCat not configured.');
+        return false;
+    }
+
     try {
       const pkg = offerings?.availablePackages.find(p => p.identifier === packageId);
       if (!pkg) return false;
@@ -67,6 +83,12 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const restorePurchases = async (): Promise<boolean> => {
+    const apiKey = CONFIG.REVENUECAT.API_KEY;
+    if (!apiKey || apiKey.includes('placeholder')) {
+        console.warn('Cannot restore: RevenueCat not configured.');
+        return false;
+    }
+
     try {
       const info = await Purchases.restorePurchases();
       return info.entitlements.active[CONFIG.REVENUECAT.ENTITLEMENT_ID] !== undefined;
