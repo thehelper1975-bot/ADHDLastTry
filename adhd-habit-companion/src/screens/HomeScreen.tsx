@@ -7,6 +7,7 @@ import { useHabits } from '../hooks/useHabits';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { DOPAMINE_MENU_ITEMS } from '../constants/dopamineMenu';
 
 export default function HomeScreen() {
   const { habits } = useHabits();
@@ -18,14 +19,13 @@ export default function HomeScreen() {
       return !h.completedDates.includes(today);
   });
 
-  const getDopamineSuggestion = (level: string) => {
-    switch(level) {
-        case 'low': return "Drink a glass of water";
-        case 'balanced': return "Do 5 minutes of stretching";
-        case 'high': return "Tackle that one annoying email";
-        default: return "Pick an energy level";
-    }
-  };
+  const suggestion = React.useMemo(() => {
+    if (!energyLevel) return null;
+    const options = DOPAMINE_MENU_ITEMS.filter(item => item.energyLevel === energyLevel);
+    if (options.length === 0) return "Take a deep breath";
+    const randomIndex = Math.floor(Math.random() * options.length);
+    return options[randomIndex].title;
+  }, [energyLevel]);
 
   return (
     <LinearGradient colors={GRADIENTS.background} style={styles.container}>
@@ -49,10 +49,10 @@ export default function HomeScreen() {
                 </TouchableOpacity>
             </View>
 
-            {energyLevel && (
+            {energyLevel && suggestion && (
                 <View style={styles.suggestionCard}>
                     <Text style={styles.suggestionTitle}>Dopamine Menu Suggestion</Text>
-                    <Text style={styles.suggestionText}>{getDopamineSuggestion(energyLevel)}</Text>
+                    <Text style={styles.suggestionText}>{suggestion}</Text>
                 </View>
             )}
 
