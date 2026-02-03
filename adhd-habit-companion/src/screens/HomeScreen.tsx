@@ -7,24 +7,24 @@ import { useHabits } from '../hooks/useHabits';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { DOPAMINE_MENU_ITEMS } from '../constants/dopamineMenu';
 
 export default function HomeScreen() {
   const { habits } = useHabits();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [energyLevel, setEnergyLevel] = useState<'low' | 'balanced' | 'high' | null>(null);
+  const [suggestion, setSuggestion] = useState<string>("");
 
   const incompleteHabits = habits.filter(h => {
       const today = new Date().toISOString().split('T')[0];
       return !h.completedDates.includes(today);
   });
 
-  const getDopamineSuggestion = (level: string) => {
-    switch(level) {
-        case 'low': return "Drink a glass of water";
-        case 'balanced': return "Do 5 minutes of stretching";
-        case 'high': return "Tackle that one annoying email";
-        default: return "Pick an energy level";
-    }
+  const handleEnergySelect = (level: 'low' | 'balanced' | 'high') => {
+      setEnergyLevel(level);
+      const items = DOPAMINE_MENU_ITEMS[level];
+      const randomItem = items[Math.floor(Math.random() * items.length)];
+      setSuggestion(randomItem);
   };
 
   return (
@@ -35,15 +35,15 @@ export default function HomeScreen() {
             <Text style={styles.subtitle}>What's your energy level right now?</Text>
 
             <View style={styles.energyContainer}>
-                <TouchableOpacity onPress={() => setEnergyLevel('low')} style={[styles.energyBtn, energyLevel === 'low' && styles.energyBtnActive]}>
+                <TouchableOpacity onPress={() => handleEnergySelect('low')} style={[styles.energyBtn, energyLevel === 'low' && styles.energyBtnActive]}>
                     <Battery size={24} color={energyLevel === 'low' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>Low</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setEnergyLevel('balanced')} style={[styles.energyBtn, energyLevel === 'balanced' && styles.energyBtnActive]}>
+                <TouchableOpacity onPress={() => handleEnergySelect('balanced')} style={[styles.energyBtn, energyLevel === 'balanced' && styles.energyBtnActive]}>
                     <Zap size={24} color={energyLevel === 'balanced' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>Balanced</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setEnergyLevel('high')} style={[styles.energyBtn, energyLevel === 'high' && styles.energyBtnActive]}>
+                <TouchableOpacity onPress={() => handleEnergySelect('high')} style={[styles.energyBtn, energyLevel === 'high' && styles.energyBtnActive]}>
                     <Flame size={24} color={energyLevel === 'high' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>High</Text>
                 </TouchableOpacity>
@@ -52,7 +52,7 @@ export default function HomeScreen() {
             {energyLevel && (
                 <View style={styles.suggestionCard}>
                     <Text style={styles.suggestionTitle}>Dopamine Menu Suggestion</Text>
-                    <Text style={styles.suggestionText}>{getDopamineSuggestion(energyLevel)}</Text>
+                    <Text style={styles.suggestionText}>{suggestion}</Text>
                 </View>
             )}
 

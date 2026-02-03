@@ -22,7 +22,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const init = async () => {
       try {
-        if (CONFIG.REVENUECAT.API_KEY) {
+        if (CONFIG.REVENUECAT.API_KEY && !CONFIG.REVENUECAT.API_KEY.includes('placeholder')) {
             await Purchases.configure({ apiKey: CONFIG.REVENUECAT.API_KEY! });
 
             const info = await Purchases.getCustomerInfo();
@@ -31,6 +31,8 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
 
             const offerings = await Purchases.getOfferings();
             setOfferings(offerings.current);
+        } else {
+            console.log('RevenueCat skipped: placeholder key detected');
         }
       } catch (e) {
         console.error('RevenueCat init error:', e);
