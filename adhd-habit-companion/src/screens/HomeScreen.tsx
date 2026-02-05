@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -7,6 +7,7 @@ import { useHabits } from '../hooks/useHabits';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { DOPAMINE_MENU } from '../constants/dopamineMenu';
 
 export default function HomeScreen() {
   const { habits } = useHabits();
@@ -18,14 +19,14 @@ export default function HomeScreen() {
       return !h.completedDates.includes(today);
   });
 
-  const getDopamineSuggestion = (level: string) => {
-    switch(level) {
-        case 'low': return "Drink a glass of water";
-        case 'balanced': return "Do 5 minutes of stretching";
-        case 'high': return "Tackle that one annoying email";
-        default: return "Pick an energy level";
+  const suggestion = useMemo(() => {
+    if (!energyLevel) return null;
+    if (energyLevel === 'low' || energyLevel === 'balanced' || energyLevel === 'high') {
+      const options = DOPAMINE_MENU[energyLevel];
+      return options[Math.floor(Math.random() * options.length)];
     }
-  };
+    return "Pick an energy level";
+  }, [energyLevel]);
 
   return (
     <LinearGradient colors={GRADIENTS.background} style={styles.container}>
@@ -49,10 +50,10 @@ export default function HomeScreen() {
                 </TouchableOpacity>
             </View>
 
-            {energyLevel && (
+            {energyLevel && suggestion && (
                 <View style={styles.suggestionCard}>
                     <Text style={styles.suggestionTitle}>Dopamine Menu Suggestion</Text>
-                    <Text style={styles.suggestionText}>{getDopamineSuggestion(energyLevel)}</Text>
+                    <Text style={styles.suggestionText}>{suggestion}</Text>
                 </View>
             )}
 
