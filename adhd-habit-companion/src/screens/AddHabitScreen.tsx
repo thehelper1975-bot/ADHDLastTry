@@ -1,28 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Switch, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useHabits } from '../hooks/useHabits';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { X } from 'lucide-react-native';
+import { RootStackParamList } from '../navigation/AppNavigator';
+
+type AddHabitScreenRouteProp = RouteProp<RootStackParamList, 'AddHabit'>;
 
 export default function AddHabitScreen() {
-  const { addHabit } = useHabits();
+  const { addHabit, updateHabit, habits } = useHabits();
   const navigation = useNavigation();
+  const route = useRoute<AddHabitScreenRouteProp>();
+  const { habitId } = route.params || {};
 
   const [title, setTitle] = useState('');
   const [isBundled, setIsBundled] = useState(false);
   const [bundledTask, setBundledTask] = useState('');
+  const [frequency, setFrequency] = useState<'daily' | 'weekly'>('daily');
+
+  useEffect(() => {
+    if (habitId) {
+        const existing = habits.find(h => h.id === habitId);
+        if (existing) {
+            setTitle(existing.title);
+            setIsBundled(existing.isBundled);
+            setBundledTask(existing.bundledTask || '');
+            setFrequency(existing.frequency || 'daily');
+        }
+    }
+  }, [habitId, habits]);
 
   const handleSave = async () => {
       if (!title.trim()) return;
 
-      await addHabit({
+      const habitData = {
           title,
           isBundled,
           bundledTask: isBundled ? bundledTask : undefined,
-          frequency: 'daily'
-      });
+          frequency
+      };
+
+      if (habitId) {
+          await updateHabit(habitId, habitData);
+      } else {
+          await addHabit(habitData);
+      }
 
       navigation.goBack();
   };
@@ -47,6 +71,22 @@ export default function AddHabitScreen() {
                     onChangeText={setTitle}
                     autoFocus
                 />
+
+                <Text style={styles.label}>Frequency</Text>
+                <View style={styles.freqContainer}>
+                    <TouchableOpacity
+                        style={[styles.freqBtn, frequency === 'daily' && styles.freqBtnActive]}
+                        onPress={() => setFrequency('daily')}
+                    >
+                        <Text style={[styles.freqText, frequency === 'daily' && styles.freqTextActive]}>Daily</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.freqBtn, frequency === 'weekly' && styles.freqBtnActive]}
+                        onPress={() => setFrequency('weekly')}
+                    >
+                        <Text style={[styles.freqText, frequency === 'weekly' && styles.freqTextActive]}>Weekly</Text>
+                    </TouchableOpacity>
+                </View>
 
                 <View style={styles.switchRow}>
                     <View>
@@ -101,5 +141,13 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.primary, padding: 18, borderRadius: 16, alignItems: 'center', marginTop: 24,
         shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8
     },
-    saveBtnText: { color: '#FFF', fontSize: 18, fontWeight: 'bold' }
+    saveBtnText: { color: '#FFF', fontSize: 18, fontWeight: 'bold' },
+    freqContainer: { flexDirection: 'row', marginBottom: 24, gap: 12 },
+    freqBtn: {
+        flex: 1, padding: 12, borderRadius: 12, borderWidth: 1, borderColor: COLORS.border,
+        backgroundColor: COLORS.surface, alignItems: 'center'
+    },
+    freqBtnActive: { backgroundColor: COLORS.secondary, borderColor: COLORS.secondary },
+    freqText: { color: COLORS.text, fontWeight: '600' },
+    freqTextActive: { color: '#FFF' }
 });
