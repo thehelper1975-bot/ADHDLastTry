@@ -1,6 +1,6 @@
 # Next Session TODO - In sha Allah
 
-**Date Created:** 2026-01-29
+**Date Created:** 2026-02-04
 **App Name:** ADHD Habit Companion
 **Branch:** app/adhd-habit-companion
 
@@ -11,6 +11,9 @@
 - Implemented Paywall and Settings screens.
 - Created Fastlane configuration files.
 - Configuration for `app.json` updated with Bundle ID.
+- **Improved**: Implemented robust streak calculation logic (daily & weekly).
+- **Improved**: Dopamine Menu now uses a rich list of suggestions and randomizes selection.
+- **Updated**: Added web support (`react-native-web`) for easier testing.
 
 ## Next Steps - In sha Allah
 1. **App Store Init**: Run `fastlane init_app` (requires Apple credentials).
@@ -25,16 +28,16 @@
 - The app uses `AsyncStorage` for local persistence.
 - RevenueCat keys in `config.ts` are placeholders and must be replaced.
 - Fastlane is configured but requires environment variables for authentication.
+- `src/utils/streakCalculator.ts` contains the logic for streaks.
 
 ## Files Modified Today
-- `adhd-habit-companion/src/screens/*.tsx` (All screens)
-- `adhd-habit-companion/src/navigation/AppNavigator.tsx`
-- `adhd-habit-companion/src/contexts/*.tsx`
+- `adhd-habit-companion/src/utils/streakCalculator.ts` (New)
+- `adhd-habit-companion/src/constants/dopamineMenu.ts` (New)
 - `adhd-habit-companion/src/hooks/useHabits.ts`
-- `adhd-habit-companion/src/constants/*.ts`
-- `adhd-habit-companion/app.json`
-- `adhd-habit-companion/App.tsx`
-- `adhd-habit-companion/fastlane/Fastfile` & `Appfile`
+- `adhd-habit-companion/src/screens/HomeScreen.tsx`
+- `adhd-habit-companion/package.json`
+- `adhd-habit-companion/package-lock.json`
+- `NEXT_SESSION_TODO.md`
 
 ## How to Continue
 1. Read this file
