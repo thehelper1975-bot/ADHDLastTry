@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Habit } from '../types';
+import { calculateStreak } from '../utils/streakCalculator';
 
 const HABITS_KEY = '@habits_v1';
 
@@ -12,7 +13,13 @@ export const useHabits = () => {
     try {
       const json = await AsyncStorage.getItem(HABITS_KEY);
       if (json) {
-        setHabits(JSON.parse(json));
+        const loadedHabits: Habit[] = JSON.parse(json);
+        // Recalculate streaks to ensure accuracy
+        const updatedHabits = loadedHabits.map(h => ({
+            ...h,
+            streak: calculateStreak(h.completedDates, h.frequency)
+        }));
+        setHabits(updatedHabits);
       }
     } catch (e) {
       console.error('Failed to load habits', e);
@@ -38,6 +45,12 @@ export const useHabits = () => {
     await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
   };
 
+  const updateHabit = async (updatedHabit: Habit) => {
+    const updated = habits.map(h => h.id === updatedHabit.id ? updatedHabit : h);
+    setHabits(updated);
+    await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
+  };
+
   const toggleHabitCompletion = async (id: string, date: string) => {
     const updated = habits.map(h => {
       if (h.id === id) {
@@ -46,7 +59,7 @@ export const useHabits = () => {
           ? h.completedDates.filter(d => d !== date)
           : [...h.completedDates, date];
 
-        const newStreak = calculateStreak(newCompletedDates);
+        const newStreak = calculateStreak(newCompletedDates, h.frequency);
 
         return { ...h, completedDates: newCompletedDates, streak: newStreak };
       }
@@ -62,10 +75,5 @@ export const useHabits = () => {
       await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
   }
 
-  return { habits, isLoading, addHabit, toggleHabitCompletion, deleteHabit, refresh: loadHabits };
+  return { habits, isLoading, addHabit, updateHabit, toggleHabitCompletion, deleteHabit, refresh: loadHabits };
 };
-
-function calculateStreak(dates: string[]): number {
-    // Placeholder for actual streak logic
-    return dates.length;
-}

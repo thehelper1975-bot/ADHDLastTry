@@ -1,28 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Switch, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useHabits } from '../hooks/useHabits';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { X } from 'lucide-react-native';
+import { RootStackParamList } from '../navigation/AppNavigator';
 
 export default function AddHabitScreen() {
-  const { addHabit } = useHabits();
+  const { addHabit, updateHabit, habits } = useHabits();
   const navigation = useNavigation();
+  const route = useRoute<RouteProp<RootStackParamList, 'AddHabit'>>();
 
-  const [title, setTitle] = useState('');
-  const [isBundled, setIsBundled] = useState(false);
-  const [bundledTask, setBundledTask] = useState('');
+  const habitId = route.params?.habitId;
+  const existingHabit = habitId ? habits.find(h => h.id === habitId) : undefined;
+
+  const [title, setTitle] = useState(existingHabit?.title || '');
+  const [isBundled, setIsBundled] = useState(existingHabit?.isBundled || false);
+  const [bundledTask, setBundledTask] = useState(existingHabit?.bundledTask || '');
+
+  useEffect(() => {
+    if (existingHabit) {
+      setTitle(existingHabit.title);
+      setIsBundled(existingHabit.isBundled);
+      setBundledTask(existingHabit.bundledTask || '');
+    }
+  }, [existingHabit]);
 
   const handleSave = async () => {
       if (!title.trim()) return;
 
-      await addHabit({
-          title,
-          isBundled,
-          bundledTask: isBundled ? bundledTask : undefined,
-          frequency: 'daily'
-      });
+      if (existingHabit) {
+          await updateHabit({
+              ...existingHabit,
+              title,
+              isBundled,
+              bundledTask: isBundled ? bundledTask : undefined,
+          });
+      } else {
+          await addHabit({
+              title,
+              isBundled,
+              bundledTask: isBundled ? bundledTask : undefined,
+              frequency: 'daily'
+          });
+      }
 
       navigation.goBack();
   };
@@ -31,8 +53,8 @@ export default function AddHabitScreen() {
     <LinearGradient colors={GRADIENTS.background} style={styles.container}>
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.header}>
-                <Text style={styles.title}>New Habit</Text>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Text style={styles.title}>{existingHabit ? 'Edit Habit' : 'New Habit'}</Text>
+                <TouchableOpacity onPress={() => navigation.goBack()} accessibilityLabel="Close" accessibilityRole="button">
                     <X size={24} color={COLORS.textSecondary} />
                 </TouchableOpacity>
             </View>
@@ -45,7 +67,8 @@ export default function AddHabitScreen() {
                     placeholderTextColor={COLORS.textSecondary}
                     value={title}
                     onChangeText={setTitle}
-                    autoFocus
+                    autoFocus={!existingHabit}
+                    accessibilityLabel="Habit Name Input"
                 />
 
                 <View style={styles.switchRow}>
@@ -58,6 +81,7 @@ export default function AddHabitScreen() {
                         onValueChange={setIsBundled}
                         trackColor={{ false: COLORS.surface, true: COLORS.secondary }}
                         thumbColor="#FFF"
+                        accessibilityLabel="Habit Bundling Switch"
                     />
                 </View>
 
@@ -70,12 +94,18 @@ export default function AddHabitScreen() {
                             placeholderTextColor={COLORS.textSecondary}
                             value={bundledTask}
                             onChangeText={setBundledTask}
+                            accessibilityLabel="Bundled Task Input"
                         />
                     </View>
                 )}
 
-                <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
-                    <Text style={styles.saveBtnText}>Create Habit</Text>
+                <TouchableOpacity
+                    style={styles.saveBtn}
+                    onPress={handleSave}
+                    accessibilityLabel="Save Habit"
+                    accessibilityRole="button"
+                >
+                    <Text style={styles.saveBtnText}>{existingHabit ? 'Update Habit' : 'Create Habit'}</Text>
                 </TouchableOpacity>
             </View>
         </SafeAreaView>

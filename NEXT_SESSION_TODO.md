@@ -1,6 +1,6 @@
 # Next Session TODO - In sha Allah
 
-**Date Created:** 2026-01-29
+**Date Created:** 2026-01-29 (Updated)
 **App Name:** ADHD Habit Companion
 **Branch:** app/adhd-habit-companion
 
@@ -9,8 +9,12 @@
 - Implemented Onboarding flow (4 screens).
 - Implemented core features: Dopamine Menu (Home), Habit Bundling (Add Habit), Flexible Progress (Streaks).
 - Implemented Paywall and Settings screens.
-- Created Fastlane configuration files.
-- Configuration for `app.json` updated with Bundle ID.
+- **Improved App:**
+    - Implemented Habit Editing (Long press on habit list).
+    - Implemented robust Streak Calculation (Daily & Weekly) in `src/utils/streakCalculator.ts`.
+    - Added Accessibility Labels to UI components.
+    - Added Web Support (`react-dom`, `react-native-web`).
+    - Fixed UI update issue on Habit List return.
 
 ## Next Steps - In sha Allah
 1. **App Store Init**: Run `fastlane init_app` (requires Apple credentials).
@@ -25,16 +29,14 @@
 - The app uses `AsyncStorage` for local persistence.
 - RevenueCat keys in `config.ts` are placeholders and must be replaced.
 - Fastlane is configured but requires environment variables for authentication.
+- `useHabits` hook creates independent state instances; `HabitListScreen` uses `useFocusEffect` to refresh data.
 
 ## Files Modified Today
-- `adhd-habit-companion/src/screens/*.tsx` (All screens)
-- `adhd-habit-companion/src/navigation/AppNavigator.tsx`
-- `adhd-habit-companion/src/contexts/*.tsx`
+- `adhd-habit-companion/src/utils/streakCalculator.ts` (New)
 - `adhd-habit-companion/src/hooks/useHabits.ts`
-- `adhd-habit-companion/src/constants/*.ts`
-- `adhd-habit-companion/app.json`
-- `adhd-habit-companion/App.tsx`
-- `adhd-habit-companion/fastlane/Fastfile` & `Appfile`
+- `adhd-habit-companion/src/screens/AddHabitScreen.tsx`
+- `adhd-habit-companion/src/screens/HabitListScreen.tsx`
+- `adhd-habit-companion/package.json`
 
 ## How to Continue
 1. Read this file
