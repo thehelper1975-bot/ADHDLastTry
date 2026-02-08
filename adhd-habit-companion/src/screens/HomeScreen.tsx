@@ -1,31 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Battery, Zap, Flame } from 'lucide-react-native';
+import { Battery, Zap, Flame, Check } from 'lucide-react-native';
 import { useHabits } from '../hooks/useHabits';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { DOPAMINE_MENU } from '../constants/dopamineMenu';
 
 export default function HomeScreen() {
-  const { habits } = useHabits();
+  const { habits, toggleHabitCompletion, refresh } = useHabits();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [energyLevel, setEnergyLevel] = useState<'low' | 'balanced' | 'high' | null>(null);
+  const [suggestion, setSuggestion] = useState<string | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
+
+  useEffect(() => {
+    if (energyLevel) {
+        const menu = DOPAMINE_MENU[energyLevel];
+        const randomItem = menu[Math.floor(Math.random() * menu.length)];
+        setSuggestion(randomItem);
+    }
+  }, [energyLevel]);
 
   const incompleteHabits = habits.filter(h => {
       const today = new Date().toISOString().split('T')[0];
       return !h.completedDates.includes(today);
   });
-
-  const getDopamineSuggestion = (level: string) => {
-    switch(level) {
-        case 'low': return "Drink a glass of water";
-        case 'balanced': return "Do 5 minutes of stretching";
-        case 'high': return "Tackle that one annoying email";
-        default: return "Pick an energy level";
-    }
-  };
 
   return (
     <LinearGradient colors={GRADIENTS.background} style={styles.container}>
@@ -49,10 +56,10 @@ export default function HomeScreen() {
                 </TouchableOpacity>
             </View>
 
-            {energyLevel && (
+            {suggestion && (
                 <View style={styles.suggestionCard}>
                     <Text style={styles.suggestionTitle}>Dopamine Menu Suggestion</Text>
-                    <Text style={styles.suggestionText}>{getDopamineSuggestion(energyLevel)}</Text>
+                    <Text style={styles.suggestionText}>{suggestion}</Text>
                 </View>
             )}
 
@@ -60,8 +67,14 @@ export default function HomeScreen() {
             {incompleteHabits.length > 0 ? (
                 incompleteHabits.slice(0, 3).map(habit => (
                     <View key={habit.id} style={styles.habitCard}>
-                        <Text style={styles.habitTitle}>{habit.title}</Text>
-                        {habit.isBundled && <Text style={styles.bundledText}>+ {habit.bundledTask}</Text>}
+                        <View style={{flex: 1}}>
+                            <Text style={styles.habitTitle}>{habit.title}</Text>
+                            {habit.isBundled && <Text style={styles.bundledText}>+ {habit.bundledTask}</Text>}
+                        </View>
+                        <TouchableOpacity
+                            style={styles.checkbox}
+                            onPress={() => toggleHabitCompletion(habit.id, new Date().toISOString().split('T')[0])}
+                        />
                     </View>
                 ))
             ) : (
@@ -101,6 +114,10 @@ const styles = StyleSheet.create({
     habitCard: {
         backgroundColor: COLORS.surface, padding: 16, borderRadius: 12, marginBottom: 12,
         flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'
+    },
+    checkbox: {
+        width: 24, height: 24, borderRadius: 8, borderWidth: 2, borderColor: COLORS.secondary,
+        marginLeft: 16
     },
     habitTitle: { color: COLORS.text, fontSize: 16, fontWeight: '500' },
     bundledText: { color: COLORS.accent, fontSize: 14 },
