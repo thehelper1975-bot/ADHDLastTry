@@ -1,17 +1,38 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView } from 'react-native';
+import React, { useCallback } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useHabits } from '../hooks/useHabits';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Plus, Check, Trash2 } from 'lucide-react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 
 export default function HabitListScreen() {
-  const { habits, toggleHabitCompletion, deleteHabit } = useHabits();
+  const { habits, toggleHabitCompletion, deleteHabit, refresh } = useHabits();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const today = new Date().toISOString().split('T')[0];
+
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
+
+  const handleDelete = (id: string) => {
+      Alert.alert(
+          "Delete Habit",
+          "Are you sure you want to delete this habit?",
+          [
+              { text: "Cancel", style: "cancel" },
+              { text: "Delete", style: "destructive", onPress: () => deleteHabit(id) }
+          ]
+      );
+  };
+
+  const handleEdit = (id: string) => {
+      navigation.navigate('AddHabit', { habitId: id });
+  };
 
   const renderItem = ({ item }: { item: any }) => {
       const isCompleted = item.completedDates.includes(today);
@@ -23,12 +44,19 @@ export default function HabitListScreen() {
               >
                   {isCompleted && <Check size={16} color="#FFF" />}
               </TouchableOpacity>
-              <View style={styles.cardContent}>
+
+              <TouchableOpacity
+                style={styles.cardContent}
+                onLongPress={() => handleEdit(item.id)}
+                delayLongPress={500}
+                activeOpacity={0.7}
+              >
                   <Text style={[styles.cardTitle, isCompleted && styles.completedText]}>{item.title}</Text>
                   {item.isBundled && <Text style={styles.bundledText}>+ {item.bundledTask}</Text>}
                   <Text style={styles.streakText}>Streak: {item.streak} days</Text>
-              </View>
-              <TouchableOpacity onPress={() => deleteHabit(item.id)}>
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={() => handleDelete(item.id)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                   <Trash2 size={20} color={COLORS.error} />
               </TouchableOpacity>
           </View>
