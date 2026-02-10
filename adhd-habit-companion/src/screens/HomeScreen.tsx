@@ -7,24 +7,38 @@ import { useHabits } from '../hooks/useHabits';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { DOPAMINE_MENU } from '../constants/dopamineMenu';
 
 export default function HomeScreen() {
   const { habits } = useHabits();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [energyLevel, setEnergyLevel] = useState<'low' | 'balanced' | 'high' | null>(null);
+  const [suggestion, setSuggestion] = useState<string | null>(null);
+
+  const getMonday = (d: Date | string) => {
+      const date = new Date(d);
+      const day = date.getDay();
+      const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+      const monday = new Date(date.setDate(diff));
+      return monday.toISOString().split('T')[0];
+  };
 
   const incompleteHabits = habits.filter(h => {
-      const today = new Date().toISOString().split('T')[0];
-      return !h.completedDates.includes(today);
+      if (h.frequency === 'daily') {
+          const today = new Date().toISOString().split('T')[0];
+          return !h.completedDates.includes(today);
+      } else { // weekly
+          const currentMonday = getMonday(new Date());
+          const hasCompletedThisWeek = h.completedDates.some(d => getMonday(d) === currentMonday);
+          return !hasCompletedThisWeek;
+      }
   });
 
-  const getDopamineSuggestion = (level: string) => {
-    switch(level) {
-        case 'low': return "Drink a glass of water";
-        case 'balanced': return "Do 5 minutes of stretching";
-        case 'high': return "Tackle that one annoying email";
-        default: return "Pick an energy level";
-    }
+  const handleEnergySelect = (level: 'low' | 'balanced' | 'high') => {
+      setEnergyLevel(level);
+      const tasks = DOPAMINE_MENU[level];
+      const randomTask = tasks[Math.floor(Math.random() * tasks.length)];
+      setSuggestion(randomTask);
   };
 
   return (
@@ -35,24 +49,24 @@ export default function HomeScreen() {
             <Text style={styles.subtitle}>What's your energy level right now?</Text>
 
             <View style={styles.energyContainer}>
-                <TouchableOpacity onPress={() => setEnergyLevel('low')} style={[styles.energyBtn, energyLevel === 'low' && styles.energyBtnActive]}>
+                <TouchableOpacity onPress={() => handleEnergySelect('low')} style={[styles.energyBtn, energyLevel === 'low' && styles.energyBtnActive]}>
                     <Battery size={24} color={energyLevel === 'low' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>Low</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setEnergyLevel('balanced')} style={[styles.energyBtn, energyLevel === 'balanced' && styles.energyBtnActive]}>
+                <TouchableOpacity onPress={() => handleEnergySelect('balanced')} style={[styles.energyBtn, energyLevel === 'balanced' && styles.energyBtnActive]}>
                     <Zap size={24} color={energyLevel === 'balanced' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>Balanced</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setEnergyLevel('high')} style={[styles.energyBtn, energyLevel === 'high' && styles.energyBtnActive]}>
+                <TouchableOpacity onPress={() => handleEnergySelect('high')} style={[styles.energyBtn, energyLevel === 'high' && styles.energyBtnActive]}>
                     <Flame size={24} color={energyLevel === 'high' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>High</Text>
                 </TouchableOpacity>
             </View>
 
-            {energyLevel && (
+            {energyLevel && suggestion && (
                 <View style={styles.suggestionCard}>
                     <Text style={styles.suggestionTitle}>Dopamine Menu Suggestion</Text>
-                    <Text style={styles.suggestionText}>{getDopamineSuggestion(energyLevel)}</Text>
+                    <Text style={styles.suggestionText}>{suggestion}</Text>
                 </View>
             )}
 
@@ -60,15 +74,18 @@ export default function HomeScreen() {
             {incompleteHabits.length > 0 ? (
                 incompleteHabits.slice(0, 3).map(habit => (
                     <View key={habit.id} style={styles.habitCard}>
-                        <Text style={styles.habitTitle}>{habit.title}</Text>
+                        <View>
+                            <Text style={styles.habitTitle}>{habit.title}</Text>
+                            <Text style={styles.frequencyText}>{habit.frequency === 'weekly' ? 'Weekly Goal' : 'Daily Goal'}</Text>
+                        </View>
                         {habit.isBundled && <Text style={styles.bundledText}>+ {habit.bundledTask}</Text>}
                     </View>
                 ))
             ) : (
                 <View style={styles.emptyState}>
-                    <Text style={styles.emptyText}>No habits set for today yet!</Text>
+                    <Text style={styles.emptyText}>You're all caught up!</Text>
                     <TouchableOpacity onPress={() => navigation.navigate('AddHabit')}>
-                        <Text style={styles.linkText}>Add a habit</Text>
+                        <Text style={styles.linkText}>Add a new habit</Text>
                     </TouchableOpacity>
                 </View>
             )}
@@ -103,6 +120,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'
     },
     habitTitle: { color: COLORS.text, fontSize: 16, fontWeight: '500' },
+    frequencyText: { color: COLORS.textSecondary, fontSize: 12, marginTop: 2 },
     bundledText: { color: COLORS.accent, fontSize: 14 },
     emptyState: { padding: 20, alignItems: 'center' },
     emptyText: { color: COLORS.textSecondary, marginBottom: 8 },
