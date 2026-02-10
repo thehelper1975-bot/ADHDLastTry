@@ -3,20 +3,30 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView } from
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useHabits } from '../hooks/useHabits';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Plus, Check, Trash2 } from 'lucide-react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 
 export default function HabitListScreen() {
-  const { habits, toggleHabitCompletion, deleteHabit } = useHabits();
+  const { habits, toggleHabitCompletion, deleteHabit, refresh } = useHabits();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const today = new Date().toISOString().split('T')[0];
+
+  useFocusEffect(
+    React.useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
 
   const renderItem = ({ item }: { item: any }) => {
       const isCompleted = item.completedDates.includes(today);
       return (
-          <View style={styles.card}>
+          <TouchableOpacity
+            style={styles.card}
+            onLongPress={() => navigation.navigate('AddHabit', { habitId: item.id })}
+            activeOpacity={0.9}
+          >
               <TouchableOpacity
                 style={[styles.checkbox, isCompleted && styles.checkboxChecked]}
                 onPress={() => toggleHabitCompletion(item.id, today)}
@@ -31,7 +41,7 @@ export default function HabitListScreen() {
               <TouchableOpacity onPress={() => deleteHabit(item.id)}>
                   <Trash2 size={20} color={COLORS.error} />
               </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
       );
   };
 
@@ -40,7 +50,12 @@ export default function HabitListScreen() {
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.header}>
                 <Text style={styles.title}>Your Habits</Text>
-                <TouchableOpacity onPress={() => navigation.navigate('AddHabit')} style={styles.addBtn}>
+                <TouchableOpacity
+                    onPress={() => navigation.navigate('AddHabit')}
+                    style={styles.addBtn}
+                    accessibilityLabel="Add Habit"
+                    accessibilityRole="button"
+                >
                     <Plus size={24} color="#FFF" />
                 </TouchableOpacity>
             </View>
