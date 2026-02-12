@@ -1,22 +1,45 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView } from 'react-native';
+import React, { useCallback } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useHabits } from '../hooks/useHabits';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Plus, Check, Trash2 } from 'lucide-react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { getLocalTodayDate } from '../utils/dateUtils';
+import { Habit } from '../types';
 
 export default function HabitListScreen() {
-  const { habits, toggleHabitCompletion, deleteHabit } = useHabits();
+  const { habits, toggleHabitCompletion, deleteHabit, refresh } = useHabits();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalTodayDate();
 
-  const renderItem = ({ item }: { item: any }) => {
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
+
+  const confirmDelete = useCallback((id: string) => {
+      Alert.alert(
+          "Delete Habit",
+          "Are you sure you want to delete this habit?",
+          [
+              { text: "Cancel", style: "cancel" },
+              { text: "Delete", style: "destructive", onPress: () => deleteHabit(id) }
+          ]
+      );
+  }, [deleteHabit]);
+
+  const renderItem = useCallback(({ item }: { item: Habit }) => {
       const isCompleted = item.completedDates.includes(today);
       return (
-          <View style={styles.card}>
+          <TouchableOpacity
+            style={styles.card}
+            activeOpacity={0.7}
+            onLongPress={() => navigation.navigate('AddHabit', { habitId: item.id })}
+          >
               <TouchableOpacity
                 style={[styles.checkbox, isCompleted && styles.checkboxChecked]}
                 onPress={() => toggleHabitCompletion(item.id, today)}
@@ -28,19 +51,21 @@ export default function HabitListScreen() {
                   {item.isBundled && <Text style={styles.bundledText}>+ {item.bundledTask}</Text>}
                   <Text style={styles.streakText}>Streak: {item.streak} days</Text>
               </View>
-              <TouchableOpacity onPress={() => deleteHabit(item.id)}>
+              <TouchableOpacity onPress={() => confirmDelete(item.id)} style={styles.deleteBtn}>
                   <Trash2 size={20} color={COLORS.error} />
               </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
       );
-  };
+  }, [today, toggleHabitCompletion, confirmDelete, navigation]);
+
+  const keyExtractor = useCallback((item: Habit) => item.id, []);
 
   return (
     <LinearGradient colors={GRADIENTS.background} style={styles.container}>
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.header}>
                 <Text style={styles.title}>Your Habits</Text>
-                <TouchableOpacity onPress={() => navigation.navigate('AddHabit')} style={styles.addBtn}>
+                <TouchableOpacity onPress={() => navigation.navigate('AddHabit')} style={styles.addBtn} accessibilityLabel="Add Habit" accessibilityRole="button">
                     <Plus size={24} color="#FFF" />
                 </TouchableOpacity>
             </View>
@@ -48,7 +73,7 @@ export default function HabitListScreen() {
             <FlatList
                 data={habits}
                 renderItem={renderItem}
-                keyExtractor={item => item.id}
+                keyExtractor={keyExtractor}
                 contentContainerStyle={styles.list}
                 ListEmptyComponent={
                     <View style={styles.empty}>
@@ -82,6 +107,7 @@ const styles = StyleSheet.create({
     completedText: { textDecorationLine: 'line-through', color: COLORS.textSecondary },
     bundledText: { color: COLORS.accent, fontSize: 14, marginTop: 4 },
     streakText: { color: COLORS.textSecondary, fontSize: 12, marginTop: 4 },
+    deleteBtn: { padding: 4 },
     empty: { alignItems: 'center', marginTop: 40 },
     emptyText: { color: COLORS.textSecondary, fontSize: 16 }
 });
