@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Habit } from '../types';
+import { calculateStreak } from '../utils/streakCalculator';
 
 const HABITS_KEY = '@habits_v1';
 
@@ -12,7 +13,13 @@ export const useHabits = () => {
     try {
       const json = await AsyncStorage.getItem(HABITS_KEY);
       if (json) {
-        setHabits(JSON.parse(json));
+        // Recalculate streaks on load to ensure they are up to date
+        const loadedHabits: Habit[] = JSON.parse(json);
+        const updatedHabits = loadedHabits.map(h => ({
+            ...h,
+            streak: calculateStreak(h.completedDates)
+        }));
+        setHabits(updatedHabits);
       }
     } catch (e) {
       console.error('Failed to load habits', e);
@@ -34,6 +41,12 @@ export const useHabits = () => {
       createdAt: new Date().toISOString(),
     };
     const updated = [...habits, newHabit];
+    setHabits(updated);
+    await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
+  };
+
+  const updateHabit = async (habit: Habit) => {
+    const updated = habits.map(h => h.id === habit.id ? habit : h);
     setHabits(updated);
     await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
   };
@@ -62,10 +75,5 @@ export const useHabits = () => {
       await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
   }
 
-  return { habits, isLoading, addHabit, toggleHabitCompletion, deleteHabit, refresh: loadHabits };
+  return { habits, isLoading, addHabit, updateHabit, toggleHabitCompletion, deleteHabit, refresh: loadHabits };
 };
-
-function calculateStreak(dates: string[]): number {
-    // Placeholder for actual streak logic
-    return dates.length;
-}
