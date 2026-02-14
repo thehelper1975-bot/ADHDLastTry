@@ -12,6 +12,13 @@
 - Created Fastlane configuration files.
 - Configuration for `app.json` updated with Bundle ID.
 
+## Recent Improvements
+- Implemented `streakCalculator.ts` for robust streak calculation logic.
+- Added data synchronization (refresh) via `useFocusEffect` in `HomeScreen` and `HabitListScreen`.
+- Added interactive habit completion (check button) to `HomeScreen`.
+- Added delete confirmation dialog to `HabitListScreen` (with web support).
+- Added web support via `react-dom` and `react-native-web`.
+
 ## Next Steps - In sha Allah
 1. **App Store Init**: Run `fastlane init_app` (requires Apple credentials).
 2. **RevenueCat Integration**:
@@ -27,14 +34,11 @@
 - Fastlane is configured but requires environment variables for authentication.
 
 ## Files Modified Today
-- `adhd-habit-companion/src/screens/*.tsx` (All screens)
-- `adhd-habit-companion/src/navigation/AppNavigator.tsx`
-- `adhd-habit-companion/src/contexts/*.tsx`
+- `adhd-habit-companion/src/utils/streakCalculator.ts` (New)
 - `adhd-habit-companion/src/hooks/useHabits.ts`
-- `adhd-habit-companion/src/constants/*.ts`
-- `adhd-habit-companion/app.json`
-- `adhd-habit-companion/App.tsx`
-- `adhd-habit-companion/fastlane/Fastfile` & `Appfile`
+- `adhd-habit-companion/src/screens/HabitListScreen.tsx`
+- `adhd-habit-companion/src/screens/HomeScreen.tsx`
+- `adhd-habit-companion/package.json`
 
 ## How to Continue
 1. Read this file

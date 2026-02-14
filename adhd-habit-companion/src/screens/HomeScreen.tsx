@@ -1,17 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Battery, Zap, Flame } from 'lucide-react-native';
+import { Battery, Zap, Flame, Check } from 'lucide-react-native';
 import { useHabits } from '../hooks/useHabits';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 
 export default function HomeScreen() {
-  const { habits } = useHabits();
+  const { habits, toggleHabitCompletion, refresh } = useHabits();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [energyLevel, setEnergyLevel] = useState<'low' | 'balanced' | 'high' | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
 
   const incompleteHabits = habits.filter(h => {
       const today = new Date().toISOString().split('T')[0];
@@ -60,8 +66,17 @@ export default function HomeScreen() {
             {incompleteHabits.length > 0 ? (
                 incompleteHabits.slice(0, 3).map(habit => (
                     <View key={habit.id} style={styles.habitCard}>
-                        <Text style={styles.habitTitle}>{habit.title}</Text>
-                        {habit.isBundled && <Text style={styles.bundledText}>+ {habit.bundledTask}</Text>}
+                        <View style={{flex: 1}}>
+                            <Text style={styles.habitTitle}>{habit.title}</Text>
+                            {habit.isBundled && <Text style={styles.bundledText}>+ {habit.bundledTask}</Text>}
+                        </View>
+                        <TouchableOpacity
+                            style={styles.checkButton}
+                            onPress={() => toggleHabitCompletion(habit.id, new Date().toISOString().split('T')[0])}
+                            accessibilityLabel={`Complete ${habit.title}`}
+                        >
+                            <Check size={20} color={COLORS.secondary} />
+                        </TouchableOpacity>
                     </View>
                 ))
             ) : (
@@ -106,5 +121,9 @@ const styles = StyleSheet.create({
     bundledText: { color: COLORS.accent, fontSize: 14 },
     emptyState: { padding: 20, alignItems: 'center' },
     emptyText: { color: COLORS.textSecondary, marginBottom: 8 },
-    linkText: { color: COLORS.secondary, fontWeight: 'bold' }
+    linkText: { color: COLORS.secondary, fontWeight: 'bold' },
+    checkButton: {
+        width: 40, height: 40, borderRadius: 20, borderWidth: 2, borderColor: COLORS.secondary,
+        alignItems: 'center', justifyContent: 'center', marginLeft: 12
+    }
 });
