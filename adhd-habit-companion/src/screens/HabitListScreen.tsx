@@ -7,13 +7,14 @@ import { useNavigation } from '@react-navigation/native';
 import { Plus, Check, Trash2 } from 'lucide-react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { Habit } from '../types';
 
 export default function HabitListScreen() {
   const { habits, toggleHabitCompletion, deleteHabit } = useHabits();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const today = new Date().toISOString().split('T')[0];
 
-  const renderItem = ({ item }: { item: any }) => {
+  const renderItem = ({ item }: { item: Habit }) => {
       const isCompleted = item.completedDates.includes(today);
       return (
           <View style={styles.card}>
