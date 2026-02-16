@@ -1,6 +1,6 @@
 # Next Session TODO - In sha Allah
 
-**Date Created:** 2026-01-29
+**Date Created:** 2026-02-16
 **App Name:** ADHD Habit Companion
 **Branch:** app/adhd-habit-companion
 
@@ -9,8 +9,13 @@
 - Implemented Onboarding flow (4 screens).
 - Implemented core features: Dopamine Menu (Home), Habit Bundling (Add Habit), Flexible Progress (Streaks).
 - Implemented Paywall and Settings screens.
-- Created Fastlane configuration files.
-- Configuration for `app.json` updated with Bundle ID.
+- **Improved App:**
+    - Implemented daily streak calculation logic in `src/utils/streakCalculator.ts`.
+    - Added "Edit Habit" functionality via long-press on Habit List.
+    - Added delete confirmation for habits.
+    - Fixed data synchronization issues using `useFocusEffect`.
+    - Added accessibility labels for better testability and accessibility.
+    - Verified frontend changes with Playwright.
 
 ## Next Steps - In sha Allah
 1. **App Store Init**: Run `fastlane init_app` (requires Apple credentials).
@@ -25,16 +30,16 @@
 - The app uses `AsyncStorage` for local persistence.
 - RevenueCat keys in `config.ts` are placeholders and must be replaced.
 - Fastlane is configured but requires environment variables for authentication.
+- Web support dependencies (`react-dom`, `react-native-web`) are installed for verification purposes.
 
 ## Files Modified Today
-- `adhd-habit-companion/src/screens/*.tsx` (All screens)
-- `adhd-habit-companion/src/navigation/AppNavigator.tsx`
-- `adhd-habit-companion/src/contexts/*.tsx`
+- `adhd-habit-companion/src/utils/streakCalculator.ts` (New)
 - `adhd-habit-companion/src/hooks/useHabits.ts`
-- `adhd-habit-companion/src/constants/*.ts`
-- `adhd-habit-companion/app.json`
-- `adhd-habit-companion/App.tsx`
-- `adhd-habit-companion/fastlane/Fastfile` & `Appfile`
+- `adhd-habit-companion/src/screens/AddHabitScreen.tsx`
+- `adhd-habit-companion/src/screens/HabitListScreen.tsx`
+- `adhd-habit-companion/src/screens/HomeScreen.tsx`
+- `adhd-habit-companion/package.json` & `package-lock.json`
+- `NEXT_SESSION_TODO.md`
 
 ## How to Continue
 1. Read this file
