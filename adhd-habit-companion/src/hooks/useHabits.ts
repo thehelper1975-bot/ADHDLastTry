@@ -62,7 +62,18 @@ export const useHabits = () => {
       await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
   }
 
-  return { habits, isLoading, addHabit, toggleHabitCompletion, deleteHabit, refresh: loadHabits };
+  const updateHabit = async (updatedHabit: Partial<Habit> & { id: string }) => {
+    const updated = habits.map(h => {
+        if (h.id === updatedHabit.id) {
+            return { ...h, ...updatedHabit };
+        }
+        return h;
+    });
+    setHabits(updated);
+    await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
+  };
+
+  return { habits, isLoading, addHabit, toggleHabitCompletion, deleteHabit, updateHabit, refresh: loadHabits };
 };
 
 function calculateStreak(dates: string[]): number {

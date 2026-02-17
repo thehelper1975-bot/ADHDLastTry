@@ -9,8 +9,10 @@
 - Implemented Onboarding flow (4 screens).
 - Implemented core features: Dopamine Menu (Home), Habit Bundling (Add Habit), Flexible Progress (Streaks).
 - Implemented Paywall and Settings screens.
+- Implemented Habit Editing (Long press), Delete Confirmation, and Data Synchronization (useFocusEffect).
 - Created Fastlane configuration files.
 - Configuration for `app.json` updated with Bundle ID.
+- Added web dependencies (`react-dom`, `react-native-web`) for verifying changes.
 
 ## Next Steps - In sha Allah
 1. **App Store Init**: Run `fastlane init_app` (requires Apple credentials).
@@ -25,12 +27,17 @@
 - The app uses `AsyncStorage` for local persistence.
 - RevenueCat keys in `config.ts` are placeholders and must be replaced.
 - Fastlane is configured but requires environment variables for authentication.
+- Web verification is possible with `npx expo start --web`.
 
 ## Files Modified Today
+- `adhd-habit-companion/src/hooks/useHabits.ts` (Added updateHabit, refresh)
+- `adhd-habit-companion/src/screens/AddHabitScreen.tsx` (Added edit mode)
+- `adhd-habit-companion/src/screens/HabitListScreen.tsx` (Added long press to edit, confirm delete, refresh on focus, accessibility labels)
+- `adhd-habit-companion/src/screens/HomeScreen.tsx` (Added refresh on focus)
+- `adhd-habit-companion/package.json` (Added web dependencies)
 - `adhd-habit-companion/src/screens/*.tsx` (All screens)
 - `adhd-habit-companion/src/navigation/AppNavigator.tsx`
 - `adhd-habit-companion/src/contexts/*.tsx`
-- `adhd-habit-companion/src/hooks/useHabits.ts`
 - `adhd-habit-companion/src/constants/*.ts`
 - `adhd-habit-companion/app.json`
 - `adhd-habit-companion/App.tsx`
