@@ -8,6 +8,9 @@
 - Initialized Expo project with TypeScript, RevenueCat, and AsyncStorage.
 - Implemented Onboarding flow (4 screens).
 - Implemented core features: Dopamine Menu (Home), Habit Bundling (Add Habit), Flexible Progress (Streaks).
+- Implemented robust streak calculation logic (`src/utils/streakCalculator.ts`).
+- Added Habit Editing and Deletion with confirmation.
+- Added Web support (`react-dom`, `react-native-web`).
 - Implemented Paywall and Settings screens.
 - Created Fastlane configuration files.
 - Configuration for `app.json` updated with Bundle ID.
@@ -25,16 +28,15 @@
 - The app uses `AsyncStorage` for local persistence.
 - RevenueCat keys in `config.ts` are placeholders and must be replaced.
 - Fastlane is configured but requires environment variables for authentication.
+- Frontend verification scripts are available in `/home/jules/verification`.
 
 ## Files Modified Today
-- `adhd-habit-companion/src/screens/*.tsx` (All screens)
-- `adhd-habit-companion/src/navigation/AppNavigator.tsx`
-- `adhd-habit-companion/src/contexts/*.tsx`
+- `adhd-habit-companion/src/utils/streakCalculator.ts` (New)
 - `adhd-habit-companion/src/hooks/useHabits.ts`
-- `adhd-habit-companion/src/constants/*.ts`
-- `adhd-habit-companion/app.json`
-- `adhd-habit-companion/App.tsx`
-- `adhd-habit-companion/fastlane/Fastfile` & `Appfile`
+- `adhd-habit-companion/src/screens/AddHabitScreen.tsx`
+- `adhd-habit-companion/src/screens/HabitListScreen.tsx`
+- `adhd-habit-companion/src/screens/HomeScreen.tsx` (Unchanged, but verified)
+- `adhd-habit-companion/package.json` (Added web dependencies)
 
 ## How to Continue
 1. Read this file
