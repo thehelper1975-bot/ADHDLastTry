@@ -9,8 +9,11 @@
 - Implemented Onboarding flow (4 screens).
 - Implemented core features: Dopamine Menu (Home), Habit Bundling (Add Habit), Flexible Progress (Streaks).
 - Implemented Paywall and Settings screens.
-- Created Fastlane configuration files.
-- Configuration for `app.json` updated with Bundle ID.
+- **Improved App Features**:
+    - **Streak Calculation**: Implemented robust streak logic checking consecutive days (backwards from today/yesterday).
+    - **Habit Editing**: Added ability to edit existing habits (long press on Habit List).
+    - **Dopamine Menu**: Added diverse suggestions categorized by energy level.
+    - **Interactive Home**: Habits on Home screen are now interactive (toggle completion) and auto-refresh.
 
 ## Next Steps - In sha Allah
 1. **App Store Init**: Run `fastlane init_app` (requires Apple credentials).
@@ -25,16 +28,17 @@
 - The app uses `AsyncStorage` for local persistence.
 - RevenueCat keys in `config.ts` are placeholders and must be replaced.
 - Fastlane is configured but requires environment variables for authentication.
+- **Frontend Verification**: Frontend changes were verified using Playwright on Expo Web. `useFocusEffect` was added to screens to ensure habit data freshness.
 
 ## Files Modified Today
-- `adhd-habit-companion/src/screens/*.tsx` (All screens)
-- `adhd-habit-companion/src/navigation/AppNavigator.tsx`
-- `adhd-habit-companion/src/contexts/*.tsx`
+- `adhd-habit-companion/src/utils/streakCalculator.ts` (New)
+- `adhd-habit-companion/src/constants/dopamineMenu.ts` (New)
 - `adhd-habit-companion/src/hooks/useHabits.ts`
-- `adhd-habit-companion/src/constants/*.ts`
-- `adhd-habit-companion/app.json`
-- `adhd-habit-companion/App.tsx`
-- `adhd-habit-companion/fastlane/Fastfile` & `Appfile`
+- `adhd-habit-companion/src/screens/AddHabitScreen.tsx`
+- `adhd-habit-companion/src/screens/HabitListScreen.tsx`
+- `adhd-habit-companion/src/screens/HomeScreen.tsx`
+- `adhd-habit-companion/src/navigation/AppNavigator.tsx` (Minor imports potentially, but mostly unaffected)
+- `adhd-habit-companion/package.json` (Added web dependencies if needed)
 
 ## How to Continue
 1. Read this file

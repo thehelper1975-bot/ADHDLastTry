@@ -1,37 +1,67 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView } from 'react-native';
+import React, { useCallback } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView, Alert, Platform } from 'react-native';
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useHabits } from '../hooks/useHabits';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Plus, Check, Trash2 } from 'lucide-react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { Habit } from '../types';
 
 export default function HabitListScreen() {
-  const { habits, toggleHabitCompletion, deleteHabit } = useHabits();
+  const { habits, toggleHabitCompletion, deleteHabit, refresh } = useHabits();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const today = new Date().toISOString().split('T')[0];
 
-  const renderItem = ({ item }: { item: any }) => {
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
+
+  const handleEdit = (habitId: string) => {
+    navigation.navigate('AddHabit', { habitId });
+  };
+
+  const handleDelete = (id: string) => {
+      if (Platform.OS === 'web') {
+          if (window.confirm('Delete this habit?')) {
+              deleteHabit(id);
+          }
+      } else {
+          Alert.alert('Delete Habit', 'Are you sure?', [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Delete', style: 'destructive', onPress: () => deleteHabit(id) }
+          ]);
+      }
+  };
+
+  const renderItem = ({ item }: { item: Habit }) => {
       const isCompleted = item.completedDates.includes(today);
       return (
-          <View style={styles.card}>
-              <TouchableOpacity
-                style={[styles.checkbox, isCompleted && styles.checkboxChecked]}
-                onPress={() => toggleHabitCompletion(item.id, today)}
-              >
-                  {isCompleted && <Check size={16} color="#FFF" />}
-              </TouchableOpacity>
-              <View style={styles.cardContent}>
-                  <Text style={[styles.cardTitle, isCompleted && styles.completedText]}>{item.title}</Text>
-                  {item.isBundled && <Text style={styles.bundledText}>+ {item.bundledTask}</Text>}
-                  <Text style={styles.streakText}>Streak: {item.streak} days</Text>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onLongPress={() => handleEdit(item.id)}
+            style={styles.cardContainer}
+          >
+              <View style={styles.card}>
+                  <TouchableOpacity
+                    style={[styles.checkbox, isCompleted && styles.checkboxChecked]}
+                    onPress={() => toggleHabitCompletion(item.id, today)}
+                  >
+                      {isCompleted && <Check size={16} color="#FFF" />}
+                  </TouchableOpacity>
+                  <View style={styles.cardContent}>
+                      <Text style={[styles.cardTitle, isCompleted && styles.completedText]}>{item.title}</Text>
+                      {item.isBundled && <Text style={styles.bundledText}>+ {item.bundledTask}</Text>}
+                      <Text style={styles.streakText}>Streak: {item.streak} days</Text>
+                  </View>
+                  <TouchableOpacity onPress={() => handleDelete(item.id)}>
+                      <Trash2 size={20} color={COLORS.error} />
+                  </TouchableOpacity>
               </View>
-              <TouchableOpacity onPress={() => deleteHabit(item.id)}>
-                  <Trash2 size={20} color={COLORS.error} />
-              </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
       );
   };
 
@@ -44,6 +74,8 @@ export default function HabitListScreen() {
                     <Plus size={24} color="#FFF" />
                 </TouchableOpacity>
             </View>
+
+            <Text style={styles.hintText}>Long press a habit to edit</Text>
 
             <FlatList
                 data={habits}
@@ -68,8 +100,9 @@ const styles = StyleSheet.create({
     title: { fontSize: 28, fontWeight: 'bold', color: COLORS.text },
     addBtn: { backgroundColor: COLORS.primary, padding: 8, borderRadius: 12 },
     list: { padding: 20 },
+    cardContainer: { marginBottom: 12 },
     card: {
-        backgroundColor: COLORS.surface, padding: 16, borderRadius: 16, marginBottom: 12,
+        backgroundColor: COLORS.surface, padding: 16, borderRadius: 16,
         flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: COLORS.border
     },
     checkbox: {
@@ -83,5 +116,6 @@ const styles = StyleSheet.create({
     bundledText: { color: COLORS.accent, fontSize: 14, marginTop: 4 },
     streakText: { color: COLORS.textSecondary, fontSize: 12, marginTop: 4 },
     empty: { alignItems: 'center', marginTop: 40 },
-    emptyText: { color: COLORS.textSecondary, fontSize: 16 }
+    emptyText: { color: COLORS.textSecondary, fontSize: 16 },
+    hintText: { textAlign: 'center', color: COLORS.textSecondary, fontSize: 12, marginBottom: 8 }
 });
