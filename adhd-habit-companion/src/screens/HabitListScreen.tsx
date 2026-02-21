@@ -1,22 +1,34 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView } from 'react-native';
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useHabits } from '../hooks/useHabits';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Plus, Check, Trash2 } from 'lucide-react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { Habit } from '../types';
 
 export default function HabitListScreen() {
-  const { habits, toggleHabitCompletion, deleteHabit } = useHabits();
+  const { habits, toggleHabitCompletion, deleteHabit, refresh } = useHabits();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const today = new Date().toISOString().split('T')[0];
 
-  const renderItem = ({ item }: { item: any }) => {
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
+
+  const renderItem = ({ item }: { item: Habit }) => {
       const isCompleted = item.completedDates.includes(today);
       return (
-          <View style={styles.card}>
+          <TouchableOpacity
+            style={styles.card}
+            onLongPress={() => navigation.navigate('AddHabit', { habitId: item.id })}
+            activeOpacity={0.8}
+            delayLongPress={500}
+          >
               <TouchableOpacity
                 style={[styles.checkbox, isCompleted && styles.checkboxChecked]}
                 onPress={() => toggleHabitCompletion(item.id, today)}
@@ -31,7 +43,7 @@ export default function HabitListScreen() {
               <TouchableOpacity onPress={() => deleteHabit(item.id)}>
                   <Trash2 size={20} color={COLORS.error} />
               </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
       );
   };
 
