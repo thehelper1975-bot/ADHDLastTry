@@ -1,6 +1,6 @@
 # Next Session TODO - In sha Allah
 
-**Date Created:** 2026-01-29
+**Date Created:** 2026-02-21
 **App Name:** ADHD Habit Companion
 **Branch:** app/adhd-habit-companion
 
@@ -11,6 +11,10 @@
 - Implemented Paywall and Settings screens.
 - Created Fastlane configuration files.
 - Configuration for `app.json` updated with Bundle ID.
+- **Improved**: Dopamine Menu now has random suggestions.
+- **Improved**: Added Edit Habit functionality (long press on list).
+- **Improved**: Streak calculation is now robust (handles daily streaks and UTC dates).
+- **Fixed**: Screens now refresh data on focus using `useFocusEffect`.
 
 ## Next Steps - In sha Allah
 1. **App Store Init**: Run `fastlane init_app` (requires Apple credentials).
@@ -25,16 +29,15 @@
 - The app uses `AsyncStorage` for local persistence.
 - RevenueCat keys in `config.ts` are placeholders and must be replaced.
 - Fastlane is configured but requires environment variables for authentication.
+- Frontend verification was done using Playwright on web.
 
 ## Files Modified Today
-- `adhd-habit-companion/src/screens/*.tsx` (All screens)
-- `adhd-habit-companion/src/navigation/AppNavigator.tsx`
-- `adhd-habit-companion/src/contexts/*.tsx`
+- `adhd-habit-companion/src/constants/dopamineMenu.ts` (Created)
+- `adhd-habit-companion/src/utils/streakCalculator.ts` (Created)
+- `adhd-habit-companion/src/screens/HomeScreen.tsx`
+- `adhd-habit-companion/src/screens/AddHabitScreen.tsx`
+- `adhd-habit-companion/src/screens/HabitListScreen.tsx`
 - `adhd-habit-companion/src/hooks/useHabits.ts`
-- `adhd-habit-companion/src/constants/*.ts`
-- `adhd-habit-companion/app.json`
-- `adhd-habit-companion/App.tsx`
-- `adhd-habit-companion/fastlane/Fastfile` & `Appfile`
 
 ## How to Continue
 1. Read this file

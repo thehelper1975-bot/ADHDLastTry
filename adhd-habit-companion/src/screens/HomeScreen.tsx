@@ -1,29 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Battery, Zap, Flame } from 'lucide-react-native';
 import { useHabits } from '../hooks/useHabits';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { DOPAMINE_MENU } from '../constants/dopamineMenu';
 
 export default function HomeScreen() {
-  const { habits } = useHabits();
+  const { habits, refresh } = useHabits();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [energyLevel, setEnergyLevel] = useState<'low' | 'balanced' | 'high' | null>(null);
+  const [suggestion, setSuggestion] = useState<string | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
 
   const incompleteHabits = habits.filter(h => {
       const today = new Date().toISOString().split('T')[0];
       return !h.completedDates.includes(today);
   });
 
-  const getDopamineSuggestion = (level: string) => {
-    switch(level) {
-        case 'low': return "Drink a glass of water";
-        case 'balanced': return "Do 5 minutes of stretching";
-        case 'high': return "Tackle that one annoying email";
-        default: return "Pick an energy level";
+  const handleEnergySelect = (level: 'low' | 'balanced' | 'high') => {
+    setEnergyLevel(level);
+    const menu = DOPAMINE_MENU.find(m => m.energy === level);
+    if (menu) {
+      const randomTask = menu.tasks[Math.floor(Math.random() * menu.tasks.length)];
+      setSuggestion(randomTask);
     }
   };
 
@@ -35,25 +43,26 @@ export default function HomeScreen() {
             <Text style={styles.subtitle}>What's your energy level right now?</Text>
 
             <View style={styles.energyContainer}>
-                <TouchableOpacity onPress={() => setEnergyLevel('low')} style={[styles.energyBtn, energyLevel === 'low' && styles.energyBtnActive]}>
+                <TouchableOpacity onPress={() => handleEnergySelect('low')} style={[styles.energyBtn, energyLevel === 'low' && styles.energyBtnActive]}>
                     <Battery size={24} color={energyLevel === 'low' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>Low</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setEnergyLevel('balanced')} style={[styles.energyBtn, energyLevel === 'balanced' && styles.energyBtnActive]}>
+                <TouchableOpacity onPress={() => handleEnergySelect('balanced')} style={[styles.energyBtn, energyLevel === 'balanced' && styles.energyBtnActive]}>
                     <Zap size={24} color={energyLevel === 'balanced' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>Balanced</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setEnergyLevel('high')} style={[styles.energyBtn, energyLevel === 'high' && styles.energyBtnActive]}>
+                <TouchableOpacity onPress={() => handleEnergySelect('high')} style={[styles.energyBtn, energyLevel === 'high' && styles.energyBtnActive]}>
                     <Flame size={24} color={energyLevel === 'high' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>High</Text>
                 </TouchableOpacity>
             </View>
 
-            {energyLevel && (
-                <View style={styles.suggestionCard}>
+            {energyLevel && suggestion && (
+                <TouchableOpacity onPress={() => handleEnergySelect(energyLevel)} style={styles.suggestionCard}>
                     <Text style={styles.suggestionTitle}>Dopamine Menu Suggestion</Text>
-                    <Text style={styles.suggestionText}>{getDopamineSuggestion(energyLevel)}</Text>
-                </View>
+                    <Text style={styles.suggestionText}>{suggestion}</Text>
+                    <Text style={styles.tapToRefresh}>(Tap for another)</Text>
+                </TouchableOpacity>
             )}
 
             <Text style={styles.sectionTitle}>Today's Focus</Text>
@@ -97,6 +106,7 @@ const styles = StyleSheet.create({
     },
     suggestionTitle: { color: COLORS.accent, fontWeight: 'bold', marginBottom: 4 },
     suggestionText: { color: COLORS.text, fontSize: 16 },
+    tapToRefresh: { color: COLORS.textSecondary, fontSize: 12, marginTop: 8, fontStyle: 'italic' },
     sectionTitle: { fontSize: 20, fontWeight: 'bold', color: COLORS.text, marginBottom: 16 },
     habitCard: {
         backgroundColor: COLORS.surface, padding: 16, borderRadius: 12, marginBottom: 12,
