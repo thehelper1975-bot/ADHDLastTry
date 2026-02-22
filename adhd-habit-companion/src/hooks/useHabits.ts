@@ -62,7 +62,18 @@ export const useHabits = () => {
       await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
   }
 
-  return { habits, isLoading, addHabit, toggleHabitCompletion, deleteHabit, refresh: loadHabits };
+  const updateHabit = async (id: string, updates: Partial<Omit<Habit, 'id' | 'createdAt' | 'streak' | 'completedDates'>>) => {
+      const updated = habits.map(h => {
+          if (h.id === id) {
+              return { ...h, ...updates };
+          }
+          return h;
+      });
+      setHabits(updated);
+      await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
+  }
+
+  return { habits, isLoading, addHabit, toggleHabitCompletion, deleteHabit, updateHabit, refresh: loadHabits };
 };
 
 function calculateStreak(dates: string[]): number {
