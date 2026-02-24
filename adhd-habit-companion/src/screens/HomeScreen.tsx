@@ -1,30 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Battery, Zap, Flame } from 'lucide-react-native';
 import { useHabits } from '../hooks/useHabits';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { DOPAMINE_MENU_ITEMS } from '../constants/dopamineMenu';
+import { EnergyLevel } from '../types';
 
 export default function HomeScreen() {
-  const { habits } = useHabits();
+  const { habits, refresh } = useHabits();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const [energyLevel, setEnergyLevel] = useState<'low' | 'balanced' | 'high' | null>(null);
+  const [energyLevel, setEnergyLevel] = useState<EnergyLevel | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+        refresh();
+    }, [refresh])
+  );
 
   const incompleteHabits = habits.filter(h => {
       const today = new Date().toISOString().split('T')[0];
       return !h.completedDates.includes(today);
   });
 
-  const getDopamineSuggestion = (level: string) => {
-    switch(level) {
-        case 'low': return "Drink a glass of water";
-        case 'balanced': return "Do 5 minutes of stretching";
-        case 'high': return "Tackle that one annoying email";
-        default: return "Pick an energy level";
-    }
+  const getDopamineSuggestion = (level: EnergyLevel) => {
+    const items = DOPAMINE_MENU_ITEMS[level];
+    if (!items || items.length === 0) return "Take a deep breath";
+    const randomIndex = Math.floor(Math.random() * items.length);
+    return items[randomIndex];
   };
 
   return (
