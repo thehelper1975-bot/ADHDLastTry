@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Habit } from '../types';
+import { calculateStreak } from '../utils/streakCalculator';
 
 const HABITS_KEY = '@habits_v1';
 
@@ -12,7 +13,23 @@ export const useHabits = () => {
     try {
       const json = await AsyncStorage.getItem(HABITS_KEY);
       if (json) {
-        setHabits(JSON.parse(json));
+        const loadedHabits: Habit[] = JSON.parse(json);
+
+        let hasChanges = false;
+        const updatedHabits = loadedHabits.map(habit => {
+            const calculatedStreak = calculateStreak(habit.completedDates);
+            if (calculatedStreak !== habit.streak) {
+                hasChanges = true;
+                return { ...habit, streak: calculatedStreak };
+            }
+            return habit;
+        });
+
+        setHabits(updatedHabits);
+
+        if (hasChanges) {
+             await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updatedHabits));
+        }
       }
     } catch (e) {
       console.error('Failed to load habits', e);
@@ -64,8 +81,3 @@ export const useHabits = () => {
 
   return { habits, isLoading, addHabit, toggleHabitCompletion, deleteHabit, refresh: loadHabits };
 };
-
-function calculateStreak(dates: string[]): number {
-    // Placeholder for actual streak logic
-    return dates.length;
-}

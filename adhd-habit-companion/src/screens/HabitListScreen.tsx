@@ -1,17 +1,23 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView } from 'react-native';
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useHabits } from '../hooks/useHabits';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Plus, Check, Trash2 } from 'lucide-react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 
 export default function HabitListScreen() {
-  const { habits, toggleHabitCompletion, deleteHabit } = useHabits();
+  const { habits, toggleHabitCompletion, deleteHabit, refresh } = useHabits();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const today = new Date().toISOString().split('T')[0];
+
+  useFocusEffect(
+    useCallback(() => {
+        refresh();
+    }, [refresh])
+  );
 
   const renderItem = ({ item }: { item: any }) => {
       const isCompleted = item.completedDates.includes(today);
