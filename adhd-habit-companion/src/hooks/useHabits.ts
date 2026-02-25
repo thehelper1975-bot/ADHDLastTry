@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Habit } from '../types';
+import { calculateStreak } from '../utils/streakCalculator';
 
 const HABITS_KEY = '@habits_v1';
 
@@ -12,7 +13,24 @@ export const useHabits = () => {
     try {
       const json = await AsyncStorage.getItem(HABITS_KEY);
       if (json) {
-        setHabits(JSON.parse(json));
+        let loadedHabits: Habit[] = JSON.parse(json);
+
+        // Recalculate streaks to ensure data is fresh (e.g. if day changed)
+        let needsUpdate = false;
+        loadedHabits = loadedHabits.map(h => {
+             const freshStreak = calculateStreak(h.completedDates);
+             if (freshStreak !== h.streak) {
+                 needsUpdate = true;
+                 return { ...h, streak: freshStreak };
+             }
+             return h;
+        });
+
+        setHabits(loadedHabits);
+
+        if (needsUpdate) {
+             await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(loadedHabits));
+        }
       }
     } catch (e) {
       console.error('Failed to load habits', e);
@@ -30,12 +48,22 @@ export const useHabits = () => {
       ...habit,
       id: Date.now().toString(),
       completedDates: [],
-      streak: 0,
+      streak: 0, // calculateStreak([]) is 0
       createdAt: new Date().toISOString(),
     };
     const updated = [...habits, newHabit];
     setHabits(updated);
     await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
+  };
+
+  const updateHabit = async (updatedHabit: Habit) => {
+      // Recalculate streak just in case
+      const freshStreak = calculateStreak(updatedHabit.completedDates);
+      const habitToSave = { ...updatedHabit, streak: freshStreak };
+
+      const updated = habits.map(h => h.id === habitToSave.id ? habitToSave : h);
+      setHabits(updated);
+      await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
   };
 
   const toggleHabitCompletion = async (id: string, date: string) => {
@@ -62,10 +90,5 @@ export const useHabits = () => {
       await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
   }
 
-  return { habits, isLoading, addHabit, toggleHabitCompletion, deleteHabit, refresh: loadHabits };
+  return { habits, isLoading, addHabit, updateHabit, toggleHabitCompletion, deleteHabit, refresh: loadHabits };
 };
-
-function calculateStreak(dates: string[]): number {
-    // Placeholder for actual streak logic
-    return dates.length;
-}
