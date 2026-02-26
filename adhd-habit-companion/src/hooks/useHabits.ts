@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Habit } from '../types';
+import { calculateStreak } from '../utils/streakCalculator';
 
 const HABITS_KEY = '@habits_v1';
 
@@ -38,6 +39,18 @@ export const useHabits = () => {
     await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
   };
 
+  const updateHabit = async (updatedHabit: Habit) => {
+      const updated = habits.map(h => {
+          if (h.id === updatedHabit.id) {
+              const newStreak = calculateStreak(updatedHabit.completedDates);
+              return { ...updatedHabit, streak: newStreak };
+          }
+          return h;
+      });
+      setHabits(updated);
+      await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
+  };
+
   const toggleHabitCompletion = async (id: string, date: string) => {
     const updated = habits.map(h => {
       if (h.id === id) {
@@ -62,10 +75,5 @@ export const useHabits = () => {
       await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
   }
 
-  return { habits, isLoading, addHabit, toggleHabitCompletion, deleteHabit, refresh: loadHabits };
+  return { habits, isLoading, addHabit, updateHabit, toggleHabitCompletion, deleteHabit, refresh: loadHabits };
 };
-
-function calculateStreak(dates: string[]): number {
-    // Placeholder for actual streak logic
-    return dates.length;
-}
