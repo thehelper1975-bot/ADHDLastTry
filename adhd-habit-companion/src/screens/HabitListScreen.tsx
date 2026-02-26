@@ -3,17 +3,25 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView } from
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useHabits } from '../hooks/useHabits';
-import { useNavigation } from '@react-navigation/native';
-import { Plus, Check, Trash2 } from 'lucide-react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { Plus, Check, Trash2, Pencil } from 'lucide-react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { Habit } from '../types';
+import { useCallback } from 'react';
 
 export default function HabitListScreen() {
-  const { habits, toggleHabitCompletion, deleteHabit } = useHabits();
+  const { habits, toggleHabitCompletion, deleteHabit, refresh } = useHabits();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const today = new Date().toISOString().split('T')[0];
 
-  const renderItem = ({ item }: { item: any }) => {
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
+
+  const renderItem = ({ item }: { item: Habit }) => {
       const isCompleted = item.completedDates.includes(today);
       return (
           <View style={styles.card}>
@@ -23,12 +31,29 @@ export default function HabitListScreen() {
               >
                   {isCompleted && <Check size={16} color="#FFF" />}
               </TouchableOpacity>
-              <View style={styles.cardContent}>
+              <TouchableOpacity
+                  style={styles.cardContent}
+                  onLongPress={() => navigation.navigate('AddHabit', { habitId: item.id })}
+                  activeOpacity={0.7}
+                  accessibilityLabel={`Edit habit ${item.title}`}
+              >
                   <Text style={[styles.cardTitle, isCompleted && styles.completedText]}>{item.title}</Text>
                   {item.isBundled && <Text style={styles.bundledText}>+ {item.bundledTask}</Text>}
                   <Text style={styles.streakText}>Streak: {item.streak} days</Text>
-              </View>
-              <TouchableOpacity onPress={() => deleteHabit(item.id)}>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('AddHabit', { habitId: item.id })}
+                style={{ marginRight: 8, padding: 8 }}
+                accessibilityLabel="Edit"
+                accessibilityRole="button"
+              >
+                  <Pencil size={20} color={COLORS.textSecondary} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => deleteHabit(item.id)}
+                accessibilityLabel="Delete"
+                accessibilityRole="button"
+              >
                   <Trash2 size={20} color={COLORS.error} />
               </TouchableOpacity>
           </View>
@@ -40,7 +65,12 @@ export default function HabitListScreen() {
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.header}>
                 <Text style={styles.title}>Your Habits</Text>
-                <TouchableOpacity onPress={() => navigation.navigate('AddHabit')} style={styles.addBtn}>
+                <TouchableOpacity
+                    onPress={() => navigation.navigate('AddHabit')}
+                    style={styles.addBtn}
+                    accessibilityLabel="Add Habit"
+                    accessibilityRole="button"
+                >
                     <Plus size={24} color="#FFF" />
                 </TouchableOpacity>
             </View>

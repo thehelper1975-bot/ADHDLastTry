@@ -1,0 +1,31 @@
+Starting project at /app/adhd-habit-companion
+Starting Metro Bundler
+Waiting on http://localhost:8081
+Logs for your project will appear below.
+Web ./index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web ./index.ts ▓▓▓▓▓▓▓▓▓░░░░░░░ 60.7% (119/206)
+Web ./index.ts ▓▓▓▓▓▓▓▓▓░░░░░░░ 60.7% (217/329)
+Web ./index.ts ▓▓▓▓▓▓▓▓▓░░░░░░░ 60.7% ( 838/2145)
+Web ./index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓░░░ 86.8% (2000/2147)
+Web ./index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓░░░ 87.4% (2305/2487)
+Web ./index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 96.6% (2551/2595)
+Web Bundled 23021ms index.ts (2739 modules)
+ LOG  [web] Logs will appear in the browser console
+Web ./index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 107ms index.ts (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web ./index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 180ms index.ts (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web ./index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 184ms index.ts (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web ./index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 94ms index.ts (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web ./index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 166ms index.ts (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web ./index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 104ms index.ts (1 module)
+ LOG  [web] Logs will appear in the browser console
