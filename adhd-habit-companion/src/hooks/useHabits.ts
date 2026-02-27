@@ -38,6 +38,12 @@ export const useHabits = () => {
     await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
   };
 
+  const updateHabit = async (habit: Habit) => {
+    const updated = habits.map(h => (h.id === habit.id ? habit : h));
+    setHabits(updated);
+    await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
+  };
+
   const toggleHabitCompletion = async (id: string, date: string) => {
     const updated = habits.map(h => {
       if (h.id === id) {
@@ -62,10 +68,42 @@ export const useHabits = () => {
       await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
   }
 
-  return { habits, isLoading, addHabit, toggleHabitCompletion, deleteHabit, refresh: loadHabits };
+  return { habits, isLoading, addHabit, updateHabit, toggleHabitCompletion, deleteHabit, refresh: loadHabits };
 };
 
 function calculateStreak(dates: string[]): number {
-    // Placeholder for actual streak logic
-    return dates.length;
+    if (dates.length === 0) return 0;
+
+    const sortedDates = [...dates].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+    const today = new Date().toISOString().split('T')[0];
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+    // If no completion today or yesterday, streak is broken
+    if (sortedDates[0] !== today && sortedDates[0] !== yesterday) {
+        return 0;
+    }
+
+    let streak = 0;
+    let currentDate = new Date(today);
+
+    // Check backwards from today
+    // If today is completed, start counting from today.
+    // If today is NOT completed but yesterday IS, start counting from yesterday.
+
+    // First normalize the start date for check
+    if (!dates.includes(today)) {
+         currentDate = new Date(yesterday);
+    }
+
+    while (true) {
+        const dateStr = currentDate.toISOString().split('T')[0];
+        if (dates.includes(dateStr)) {
+            streak++;
+            currentDate.setDate(currentDate.getDate() - 1);
+        } else {
+            break;
+        }
+    }
+
+    return streak;
 }

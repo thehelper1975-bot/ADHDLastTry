@@ -1,6 +1,6 @@
 # Next Session TODO - In sha Allah
 
-**Date Created:** 2026-01-29
+**Date Created:** 2026-02-27
 **App Name:** ADHD Habit Companion
 **Branch:** app/adhd-habit-companion
 
@@ -9,6 +9,8 @@
 - Implemented Onboarding flow (4 screens).
 - Implemented core features: Dopamine Menu (Home), Habit Bundling (Add Habit), Flexible Progress (Streaks).
 - Implemented Paywall and Settings screens.
+- **Enhanced Habit Features**: Added habit editing, daily streak calculation with grace period, and specific dopamine menu suggestions.
+- **Enhanced Progress**: Implemented weekly consistency chart with real data.
 - Created Fastlane configuration files.
 - Configuration for `app.json` updated with Bundle ID.
 
@@ -27,14 +29,12 @@
 - Fastlane is configured but requires environment variables for authentication.
 
 ## Files Modified Today
-- `adhd-habit-companion/src/screens/*.tsx` (All screens)
-- `adhd-habit-companion/src/navigation/AppNavigator.tsx`
-- `adhd-habit-companion/src/contexts/*.tsx`
-- `adhd-habit-companion/src/hooks/useHabits.ts`
-- `adhd-habit-companion/src/constants/*.ts`
-- `adhd-habit-companion/app.json`
-- `adhd-habit-companion/App.tsx`
-- `adhd-habit-companion/fastlane/Fastfile` & `Appfile`
+- `adhd-habit-companion/src/constants/dopamineMenu.ts` (New file)
+- `adhd-habit-companion/src/hooks/useHabits.ts` (Added updateHabit, calculateStreak)
+- `adhd-habit-companion/src/screens/AddHabitScreen.tsx` (Added edit mode)
+- `adhd-habit-companion/src/screens/HabitListScreen.tsx` (Added edit button, delete confirmation)
+- `adhd-habit-companion/src/screens/HomeScreen.tsx` (Implemented Dopamine Menu logic)
+- `adhd-habit-companion/src/screens/ProgressScreen.tsx` (Real data for weekly chart)
 
 ## How to Continue
 1. Read this file

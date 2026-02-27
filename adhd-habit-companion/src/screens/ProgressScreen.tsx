@@ -11,8 +11,20 @@ export default function ProgressScreen() {
   const totalCompletions = habits.reduce((acc, h) => acc + h.completedDates.length, 0);
   const currentLongestStreak = Math.max(0, ...habits.map(h => h.streak));
 
-  // Weekly view placeholder
-  const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+  // Get last 7 days
+  const last7Days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return d.toISOString().split('T')[0];
+  });
+
+  const weeklyData = last7Days.map(date => {
+      const dayName = new Date(date).toLocaleDateString('en-US', { weekday: 'narrow' });
+      const count = habits.reduce((acc, h) => h.completedDates.includes(date) ? acc + 1 : acc, 0);
+      return { day: dayName, count, date };
+  });
+
+  const maxDailyCompletions = Math.max(1, ...weeklyData.map(d => d.count));
 
   return (
     <LinearGradient colors={GRADIENTS.background} style={styles.container}>
@@ -36,14 +48,27 @@ export default function ProgressScreen() {
                 </View>
 
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Weekly Consistency</Text>
+                    <Text style={styles.sectionTitle}>Last 7 Days</Text>
                     <View style={styles.chartContainer}>
-                        {days.map((day, index) => (
-                            <View key={index} style={styles.barContainer}>
-                                <View style={[styles.bar, { height: 40 + Math.random() * 60, backgroundColor: index === 6 ? COLORS.primary : COLORS.surface }]} />
-                                <Text style={styles.dayLabel}>{day}</Text>
-                            </View>
-                        ))}
+                        {weeklyData.map((data, index) => {
+                            const heightPercentage = (data.count / maxDailyCompletions) * 100;
+                            // Ensure bar is at least a small height if 0 to show placeholder
+                            const barHeight = Math.max(4, heightPercentage);
+
+                            return (
+                                <View key={index} style={styles.barContainer}>
+                                    <View style={[
+                                        styles.bar,
+                                        {
+                                            height: `${barHeight}%`,
+                                            backgroundColor: data.count > 0 ? COLORS.secondary : COLORS.surface,
+                                            opacity: data.count > 0 ? 1 : 0.3
+                                        }
+                                    ]} />
+                                    <Text style={styles.dayLabel}>{data.day}</Text>
+                                </View>
+                            );
+                        })}
                     </View>
                 </View>
 
@@ -72,10 +97,10 @@ const styles = StyleSheet.create({
     statLabel: { color: COLORS.textSecondary },
     section: { marginBottom: 32 },
     sectionTitle: { fontSize: 20, fontWeight: 'bold', color: COLORS.text, marginBottom: 16 },
-    chartContainer: { flexDirection: 'row', justifyContent: 'space-between', height: 150, alignItems: 'flex-end' },
-    barContainer: { alignItems: 'center', gap: 8 },
-    bar: { width: 30, borderRadius: 8 },
-    dayLabel: { color: COLORS.textSecondary },
+    chartContainer: { flexDirection: 'row', justifyContent: 'space-between', height: 150, alignItems: 'flex-end', paddingBottom: 10 },
+    barContainer: { alignItems: 'center', gap: 8, height: '100%', justifyContent: 'flex-end', flex: 1 },
+    bar: { width: 30, borderRadius: 8, minHeight: 4 },
+    dayLabel: { color: COLORS.textSecondary, fontSize: 12 },
     infoCard: { backgroundColor: 'rgba(59, 130, 246, 0.1)', padding: 16, borderRadius: 12, borderLeftWidth: 4, borderLeftColor: COLORS.secondary },
     infoTitle: { color: COLORS.secondary, fontWeight: 'bold', marginBottom: 4 },
     infoText: { color: COLORS.text, lineHeight: 22 }
