@@ -1,30 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Battery, Zap, Flame } from 'lucide-react-native';
 import { useHabits } from '../hooks/useHabits';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { DOPAMINE_MENU } from '../constants/dopamineMenu';
+import { EnergyLevel } from '../types';
 
 export default function HomeScreen() {
-  const { habits } = useHabits();
+  const { habits, refresh } = useHabits();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const [energyLevel, setEnergyLevel] = useState<'low' | 'balanced' | 'high' | null>(null);
+  const [energyLevel, setEnergyLevel] = useState<EnergyLevel | null>(null);
+  const [dopamineSuggestion, setDopamineSuggestion] = useState<string | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
 
   const incompleteHabits = habits.filter(h => {
       const today = new Date().toISOString().split('T')[0];
       return !h.completedDates.includes(today);
   });
 
-  const getDopamineSuggestion = (level: string) => {
-    switch(level) {
-        case 'low': return "Drink a glass of water";
-        case 'balanced': return "Do 5 minutes of stretching";
-        case 'high': return "Tackle that one annoying email";
-        default: return "Pick an energy level";
-    }
+  const completedHabitsThisWeek = useMemo(() => {
+      const getMonday = (d: Date) => {
+          const dt = new Date(d);
+          const day = dt.getDay();
+          const diff = dt.getDate() - day + (day === 0 ? -6 : 1);
+          return new Date(dt.setDate(diff)).toISOString().split('T')[0];
+      };
+      const monday = getMonday(new Date());
+      return habits.filter(h => h.completedDates.some(date => date >= monday)).length;
+  }, [habits]);
+
+  const handleEnergyLevelSelect = (level: EnergyLevel) => {
+      setEnergyLevel(level);
+      const suggestions = DOPAMINE_MENU[level];
+      const randomSuggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
+      setDopamineSuggestion(randomSuggestion);
   };
 
   return (
@@ -34,25 +52,29 @@ export default function HomeScreen() {
             <Text style={styles.greeting}>Good Morning!</Text>
             <Text style={styles.subtitle}>What's your energy level right now?</Text>
 
+            <View style={styles.weeklySummary}>
+                <Text style={styles.weeklySummaryText}>You've completed {completedHabitsThisWeek} habits this week!</Text>
+            </View>
+
             <View style={styles.energyContainer}>
-                <TouchableOpacity onPress={() => setEnergyLevel('low')} style={[styles.energyBtn, energyLevel === 'low' && styles.energyBtnActive]}>
+                <TouchableOpacity onPress={() => handleEnergyLevelSelect('low')} style={[styles.energyBtn, energyLevel === 'low' && styles.energyBtnActive]}>
                     <Battery size={24} color={energyLevel === 'low' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>Low</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setEnergyLevel('balanced')} style={[styles.energyBtn, energyLevel === 'balanced' && styles.energyBtnActive]}>
+                <TouchableOpacity onPress={() => handleEnergyLevelSelect('balanced')} style={[styles.energyBtn, energyLevel === 'balanced' && styles.energyBtnActive]}>
                     <Zap size={24} color={energyLevel === 'balanced' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>Balanced</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setEnergyLevel('high')} style={[styles.energyBtn, energyLevel === 'high' && styles.energyBtnActive]}>
+                <TouchableOpacity onPress={() => handleEnergyLevelSelect('high')} style={[styles.energyBtn, energyLevel === 'high' && styles.energyBtnActive]}>
                     <Flame size={24} color={energyLevel === 'high' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>High</Text>
                 </TouchableOpacity>
             </View>
 
-            {energyLevel && (
+            {energyLevel && dopamineSuggestion && (
                 <View style={styles.suggestionCard}>
                     <Text style={styles.suggestionTitle}>Dopamine Menu Suggestion</Text>
-                    <Text style={styles.suggestionText}>{getDopamineSuggestion(energyLevel)}</Text>
+                    <Text style={styles.suggestionText}>{dopamineSuggestion}</Text>
                 </View>
             )}
 
@@ -84,6 +106,8 @@ const styles = StyleSheet.create({
     content: { padding: 20 },
     greeting: { fontSize: 32, fontWeight: 'bold', color: COLORS.text, marginBottom: 8 },
     subtitle: { fontSize: 16, color: COLORS.textSecondary, marginBottom: 24 },
+    weeklySummary: { backgroundColor: 'rgba(107, 70, 193, 0.1)', padding: 12, borderRadius: 8, marginBottom: 24 },
+    weeklySummaryText: { color: COLORS.primary, fontWeight: '600', textAlign: 'center' },
     energyContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24 },
     energyBtn: {
         flex: 1, alignItems: 'center', padding: 16, margin: 4,
