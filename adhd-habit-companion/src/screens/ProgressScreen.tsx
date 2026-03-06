@@ -1,15 +1,22 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useHabits } from '../hooks/useHabits';
 import { TrendingUp, Award, Calendar } from 'lucide-react-native';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function ProgressScreen() {
-  const { habits } = useHabits();
+  const { habits, refresh } = useHabits();
+
+  useFocusEffect(
+      useCallback(() => {
+          refresh();
+      }, [refresh])
+  );
 
   const totalCompletions = habits.reduce((acc, h) => acc + h.completedDates.length, 0);
-  const currentLongestStreak = Math.max(0, ...habits.map(h => h.streak));
+  const currentLongestStreak = habits.length > 0 ? Math.max(...habits.map(h => h.streak)) : 0;
 
   // Weekly view placeholder
   const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
