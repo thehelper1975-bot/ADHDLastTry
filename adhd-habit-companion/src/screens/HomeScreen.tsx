@@ -1,22 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Battery, Zap, Flame } from 'lucide-react-native';
+import { Battery, Zap, Flame, CheckCircle } from 'lucide-react-native';
 import { useHabits } from '../hooks/useHabits';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 
 export default function HomeScreen() {
-  const { habits } = useHabits();
+  const { habits, refresh } = useHabits();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [energyLevel, setEnergyLevel] = useState<'low' | 'balanced' | 'high' | null>(null);
 
-  const incompleteHabits = habits.filter(h => {
-      const today = new Date().toISOString().split('T')[0];
-      return !h.completedDates.includes(today);
-  });
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
+
+  const today = new Date().toISOString().split('T')[0];
+  const incompleteHabits = habits.filter(h => !h.completedDates.includes(today));
+
+  // Calculate if habit is completed this week
+  const isCompletedThisWeek = (completedDates: string[]) => {
+      const curr = new Date();
+      const day = curr.getDay();
+      const diff = curr.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+      const first = new Date(curr.setDate(diff)); // Monday
+      const last = new Date(first);
+      last.setDate(last.getDate() + 6); // Sunday
+
+      const firstDay = first.toISOString().split('T')[0];
+      const lastDay = last.toISOString().split('T')[0];
+
+      return completedDates.some(date => date >= firstDay && date <= lastDay);
+  };
 
   const getDopamineSuggestion = (level: string) => {
     switch(level) {
@@ -35,15 +54,15 @@ export default function HomeScreen() {
             <Text style={styles.subtitle}>What's your energy level right now?</Text>
 
             <View style={styles.energyContainer}>
-                <TouchableOpacity onPress={() => setEnergyLevel('low')} style={[styles.energyBtn, energyLevel === 'low' && styles.energyBtnActive]}>
+                <TouchableOpacity onPress={() => setEnergyLevel('low')} style={[styles.energyBtn, energyLevel === 'low' && styles.energyBtnActive]} accessibilityRole="button" accessibilityLabel="Low energy">
                     <Battery size={24} color={energyLevel === 'low' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>Low</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setEnergyLevel('balanced')} style={[styles.energyBtn, energyLevel === 'balanced' && styles.energyBtnActive]}>
+                <TouchableOpacity onPress={() => setEnergyLevel('balanced')} style={[styles.energyBtn, energyLevel === 'balanced' && styles.energyBtnActive]} accessibilityRole="button" accessibilityLabel="Balanced energy">
                     <Zap size={24} color={energyLevel === 'balanced' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>Balanced</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setEnergyLevel('high')} style={[styles.energyBtn, energyLevel === 'high' && styles.energyBtnActive]}>
+                <TouchableOpacity onPress={() => setEnergyLevel('high')} style={[styles.energyBtn, energyLevel === 'high' && styles.energyBtnActive]} accessibilityRole="button" accessibilityLabel="High energy">
                     <Flame size={24} color={energyLevel === 'high' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>High</Text>
                 </TouchableOpacity>
@@ -59,15 +78,29 @@ export default function HomeScreen() {
             <Text style={styles.sectionTitle}>Today's Focus</Text>
             {incompleteHabits.length > 0 ? (
                 incompleteHabits.slice(0, 3).map(habit => (
-                    <View key={habit.id} style={styles.habitCard}>
-                        <Text style={styles.habitTitle}>{habit.title}</Text>
-                        {habit.isBundled && <Text style={styles.bundledText}>+ {habit.bundledTask}</Text>}
-                    </View>
+                    <TouchableOpacity
+                        key={habit.id}
+                        style={styles.habitCard}
+                        onPress={() => navigation.navigate('AddHabit', { habitId: habit.id })}
+                        accessibilityRole="button"
+                        accessibilityLabel={`View habit ${habit.title}`}
+                    >
+                        <View style={styles.habitInfo}>
+                            <Text style={styles.habitTitle}>{habit.title}</Text>
+                            {habit.isBundled && <Text style={styles.bundledText}>+ {habit.bundledTask}</Text>}
+                        </View>
+                        {habit.frequency === 'weekly' && isCompletedThisWeek(habit.completedDates) && (
+                            <View style={styles.weeklyBadge} accessibilityLabel="Completed this week">
+                                <CheckCircle size={16} color={COLORS.success} />
+                                <Text style={styles.weeklyText}>Done</Text>
+                            </View>
+                        )}
+                    </TouchableOpacity>
                 ))
             ) : (
                 <View style={styles.emptyState}>
                     <Text style={styles.emptyText}>No habits set for today yet!</Text>
-                    <TouchableOpacity onPress={() => navigation.navigate('AddHabit')}>
+                    <TouchableOpacity onPress={() => navigation.navigate('AddHabit')} accessibilityRole="button" accessibilityLabel="Add a habit">
                         <Text style={styles.linkText}>Add a habit</Text>
                     </TouchableOpacity>
                 </View>
@@ -102,8 +135,11 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.surface, padding: 16, borderRadius: 12, marginBottom: 12,
         flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'
     },
+    habitInfo: { flex: 1 },
     habitTitle: { color: COLORS.text, fontSize: 16, fontWeight: '500' },
-    bundledText: { color: COLORS.accent, fontSize: 14 },
+    bundledText: { color: COLORS.accent, fontSize: 14, marginTop: 4 },
+    weeklyBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(16, 185, 129, 0.1)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 },
+    weeklyText: { color: COLORS.success, fontSize: 12, marginLeft: 4, fontWeight: '600' },
     emptyState: { padding: 20, alignItems: 'center' },
     emptyText: { color: COLORS.textSecondary, marginBottom: 8 },
     linkText: { color: COLORS.secondary, fontWeight: 'bold' }
