@@ -11,6 +11,7 @@
 - Implemented Paywall and Settings screens.
 - Created Fastlane configuration files.
 - Configuration for `app.json` updated with Bundle ID.
+- Improved habit features: Added ability to Edit Habits (with pre-filling), improved `useHabits` hook for synchronized state using `useFocusEffect`, replaced mock streak logic with UTC-based consecutive day calculations (`streakCalculator.ts`), added randomized dopamine suggestions based on energy levels (`dopamineMenu.ts`), and implemented platform-aware delete confirmations. Added accessibility labels to interactive elements.
 
 ## Next Steps - In sha Allah
 1. **App Store Init**: Run `fastlane init_app` (requires Apple credentials).
@@ -27,14 +28,12 @@
 - Fastlane is configured but requires environment variables for authentication.
 
 ## Files Modified Today
-- `adhd-habit-companion/src/screens/*.tsx` (All screens)
-- `adhd-habit-companion/src/navigation/AppNavigator.tsx`
-- `adhd-habit-companion/src/contexts/*.tsx`
+- `adhd-habit-companion/src/utils/streakCalculator.ts`
+- `adhd-habit-companion/src/constants/dopamineMenu.ts`
 - `adhd-habit-companion/src/hooks/useHabits.ts`
-- `adhd-habit-companion/src/constants/*.ts`
-- `adhd-habit-companion/app.json`
-- `adhd-habit-companion/App.tsx`
-- `adhd-habit-companion/fastlane/Fastfile` & `Appfile`
+- `adhd-habit-companion/src/screens/AddHabitScreen.tsx`
+- `adhd-habit-companion/src/screens/HabitListScreen.tsx`
+- `adhd-habit-companion/src/screens/HomeScreen.tsx`
 
 ## How to Continue
 1. Read this file
