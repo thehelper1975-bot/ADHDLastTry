@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Habit } from '../types';
+import { calculateStreak } from '../utils/streakCalculator';
 
 const HABITS_KEY = '@habits_v1';
 
@@ -12,7 +13,13 @@ export const useHabits = () => {
     try {
       const json = await AsyncStorage.getItem(HABITS_KEY);
       if (json) {
-        setHabits(JSON.parse(json));
+        const parsedHabits: Habit[] = JSON.parse(json);
+        // Recalculate streaks upon loading to ensure consistency
+        const habitsWithUpdatedStreaks = parsedHabits.map(h => ({
+            ...h,
+            streak: calculateStreak(h.completedDates)
+        }));
+        setHabits(habitsWithUpdatedStreaks);
       }
     } catch (e) {
       console.error('Failed to load habits', e);
@@ -36,6 +43,20 @@ export const useHabits = () => {
     const updated = [...habits, newHabit];
     setHabits(updated);
     await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
+  };
+
+  const updateHabit = async (id: string, updates: Partial<Habit>) => {
+      const updated = habits.map(h => {
+          if (h.id === id) {
+              const updatedHabit = { ...h, ...updates };
+              // Ensure streak is consistent if completedDates changes (unlikely in updateHabit, but safe)
+              updatedHabit.streak = calculateStreak(updatedHabit.completedDates);
+              return updatedHabit;
+          }
+          return h;
+      });
+      setHabits(updated);
+      await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
   };
 
   const toggleHabitCompletion = async (id: string, date: string) => {
@@ -62,10 +83,5 @@ export const useHabits = () => {
       await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
   }
 
-  return { habits, isLoading, addHabit, toggleHabitCompletion, deleteHabit, refresh: loadHabits };
+  return { habits, isLoading, addHabit, updateHabit, toggleHabitCompletion, deleteHabit, refresh: loadHabits };
 };
-
-function calculateStreak(dates: string[]): number {
-    // Placeholder for actual streak logic
-    return dates.length;
-}
