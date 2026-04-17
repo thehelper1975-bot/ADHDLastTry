@@ -11,6 +11,7 @@
 - Implemented Paywall and Settings screens.
 - Created Fastlane configuration files.
 - Configuration for `app.json` updated with Bundle ID.
+- Completed improvements: updated habits state hook, editing support in add habit screen, logic updates for streak calculation, integration of dopamine menu data.
 
 ## Next Steps - In sha Allah
 1. **App Store Init**: Run `fastlane init_app` (requires Apple credentials).
@@ -32,6 +33,7 @@
 - `adhd-habit-companion/src/contexts/*.tsx`
 - `adhd-habit-companion/src/hooks/useHabits.ts`
 - `adhd-habit-companion/src/constants/*.ts`
+- `adhd-habit-companion/src/utils/streakCalculator.ts`
 - `adhd-habit-companion/app.json`
 - `adhd-habit-companion/App.tsx`
 - `adhd-habit-companion/fastlane/Fastfile` & `Appfile`
