@@ -28,6 +28,8 @@ export default function SettingsScreen() {
                     <TouchableOpacity
                         style={styles.premiumCard}
                         onPress={() => navigation.navigate('Paywall')}
+                        accessibilityRole="button"
+                        accessibilityLabel="Unlock Premium"
                     >
                         <View style={styles.premiumContent}>
                             <Crown color="#FFF" size={24} />
@@ -58,21 +60,36 @@ export default function SettingsScreen() {
 
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Support & Legal</Text>
-                    <TouchableOpacity style={styles.linkRow} onPress={() => openLink(CONFIG.URLS.SUPPORT)}>
+                    <TouchableOpacity
+                        style={styles.linkRow}
+                        onPress={() => openLink(CONFIG.URLS.SUPPORT)}
+                        accessibilityRole="button"
+                        accessibilityLabel="Support"
+                    >
                         <View style={styles.linkLeft}>
                             <Heart size={20} color={COLORS.textSecondary} />
                             <Text style={styles.linkText}>Support</Text>
                         </View>
                         <ChevronRight size={20} color={COLORS.textSecondary} />
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.linkRow} onPress={() => openLink(CONFIG.URLS.PRIVACY)}>
+                    <TouchableOpacity
+                        style={styles.linkRow}
+                        onPress={() => openLink(CONFIG.URLS.PRIVACY)}
+                        accessibilityRole="button"
+                        accessibilityLabel="Privacy Policy"
+                    >
                         <View style={styles.linkLeft}>
                             <Shield size={20} color={COLORS.textSecondary} />
                             <Text style={styles.linkText}>Privacy Policy</Text>
                         </View>
                         <ChevronRight size={20} color={COLORS.textSecondary} />
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.linkRow} onPress={() => openLink(CONFIG.URLS.TERMS)}>
+                    <TouchableOpacity
+                        style={styles.linkRow}
+                        onPress={() => openLink(CONFIG.URLS.TERMS)}
+                        accessibilityRole="button"
+                        accessibilityLabel="Terms of Use"
+                    >
                         <View style={styles.linkLeft}>
                             <FileText size={20} color={COLORS.textSecondary} />
                             <Text style={styles.linkText}>Terms of Use</Text>

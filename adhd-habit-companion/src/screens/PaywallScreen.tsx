@@ -43,10 +43,19 @@ export default function PaywallScreen() {
     <LinearGradient colors={['#1A1A2E', '#0F0F1A']} style={styles.container}>
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
+                <TouchableOpacity
+                    onPress={() => navigation.goBack()}
+                    style={styles.closeBtn}
+                    accessibilityRole="button"
+                    accessibilityLabel="Close paywall"
+                >
                     <X size={24} color={COLORS.textSecondary} />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={handleRestore}>
+                <TouchableOpacity
+                    onPress={handleRestore}
+                    accessibilityRole="button"
+                    accessibilityLabel="Restore purchases"
+                >
                     <Text style={styles.restoreText}>Restore</Text>
                 </TouchableOpacity>
             </View>
@@ -78,6 +87,8 @@ export default function PaywallScreen() {
                                     style={[styles.packageCard, pkg.packageType === 'ANNUAL' && styles.packageCardPopular]}
                                     onPress={() => handlePurchase(pkg)}
                                     disabled={purchasing}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={`Purchase ${pkg.product.title} for ${pkg.product.priceString}`}
                                 >
                                     {pkg.packageType === 'ANNUAL' && (
                                         <View style={styles.popularBadge}>

@@ -84,6 +84,8 @@ export default function OnboardingScreen() {
                       selectedOptions[currentSlideIndex] === option && styles.optionButtonSelected
                     ]}
                     onPress={() => handleOptionSelect(option)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Select option: ${option}`}
                   >
                     <Text style={[
                       styles.optionText,
@@ -110,7 +112,12 @@ export default function OnboardingScreen() {
             ))}
           </View>
 
-          <TouchableOpacity style={styles.button} onPress={nextSlide}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={nextSlide}
+            accessibilityRole="button"
+            accessibilityLabel={currentSlideIndex === SLIDES.length - 1 ? "Get Started" : "Continue"}
+          >
             <Text style={styles.buttonText}>
               {currentSlideIndex === SLIDES.length - 1 ? "Get Started" : "Continue"}
             </Text>
