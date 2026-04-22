@@ -1,30 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Battery, Zap, Flame } from 'lucide-react-native';
 import { useHabits } from '../hooks/useHabits';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { DOPAMINE_MENU } from '../constants/dopamineMenu';
+import { EnergyLevel } from '../types';
 
 export default function HomeScreen() {
-  const { habits } = useHabits();
+  const { habits, refresh } = useHabits();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const [energyLevel, setEnergyLevel] = useState<'low' | 'balanced' | 'high' | null>(null);
+  const [energyLevel, setEnergyLevel] = useState<EnergyLevel | null>(null);
+  const [suggestedTask, setSuggestedTask] = useState<string | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
+
+  const getStartOfWeek = (date: Date) => {
+    const d = new Date(date);
+    const day = d.getUTCDay();
+    const diff = d.getUTCDate() - day + (day === 0 ? -6 : 1);
+    return new Date(d.setUTCDate(diff));
+  };
+
+  const isCurrentWeek = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const today = new Date();
+    const startOfWeek = getStartOfWeek(today);
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setUTCDate(startOfWeek.getUTCDate() + 6);
+    return date >= startOfWeek && date <= endOfWeek;
+  };
 
   const incompleteHabits = habits.filter(h => {
       const today = new Date().toISOString().split('T')[0];
+      if (h.frequency === 'weekly') {
+        return !h.completedDates.some(isCurrentWeek);
+      }
       return !h.completedDates.includes(today);
   });
 
-  const getDopamineSuggestion = (level: string) => {
-    switch(level) {
-        case 'low': return "Drink a glass of water";
-        case 'balanced': return "Do 5 minutes of stretching";
-        case 'high': return "Tackle that one annoying email";
-        default: return "Pick an energy level";
-    }
+  const handleEnergySelect = (level: EnergyLevel) => {
+      setEnergyLevel(level);
+      const tasks = DOPAMINE_MENU[level];
+      const randomTask = tasks[Math.floor(Math.random() * tasks.length)];
+      setSuggestedTask(randomTask);
   };
 
   return (
@@ -35,24 +61,39 @@ export default function HomeScreen() {
             <Text style={styles.subtitle}>What's your energy level right now?</Text>
 
             <View style={styles.energyContainer}>
-                <TouchableOpacity onPress={() => setEnergyLevel('low')} style={[styles.energyBtn, energyLevel === 'low' && styles.energyBtnActive]}>
+                <TouchableOpacity
+                    onPress={() => handleEnergySelect('low')}
+                    style={[styles.energyBtn, energyLevel === 'low' && styles.energyBtnActive]}
+                    accessibilityRole="button"
+                    accessibilityLabel="Low energy level"
+                >
                     <Battery size={24} color={energyLevel === 'low' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>Low</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setEnergyLevel('balanced')} style={[styles.energyBtn, energyLevel === 'balanced' && styles.energyBtnActive]}>
+                <TouchableOpacity
+                    onPress={() => handleEnergySelect('balanced')}
+                    style={[styles.energyBtn, energyLevel === 'balanced' && styles.energyBtnActive]}
+                    accessibilityRole="button"
+                    accessibilityLabel="Balanced energy level"
+                >
                     <Zap size={24} color={energyLevel === 'balanced' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>Balanced</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setEnergyLevel('high')} style={[styles.energyBtn, energyLevel === 'high' && styles.energyBtnActive]}>
+                <TouchableOpacity
+                    onPress={() => handleEnergySelect('high')}
+                    style={[styles.energyBtn, energyLevel === 'high' && styles.energyBtnActive]}
+                    accessibilityRole="button"
+                    accessibilityLabel="High energy level"
+                >
                     <Flame size={24} color={energyLevel === 'high' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>High</Text>
                 </TouchableOpacity>
             </View>
 
-            {energyLevel && (
+            {energyLevel && suggestedTask && (
                 <View style={styles.suggestionCard}>
                     <Text style={styles.suggestionTitle}>Dopamine Menu Suggestion</Text>
-                    <Text style={styles.suggestionText}>{getDopamineSuggestion(energyLevel)}</Text>
+                    <Text style={styles.suggestionText}>{suggestedTask}</Text>
                 </View>
             )}
 
@@ -67,7 +108,11 @@ export default function HomeScreen() {
             ) : (
                 <View style={styles.emptyState}>
                     <Text style={styles.emptyText}>No habits set for today yet!</Text>
-                    <TouchableOpacity onPress={() => navigation.navigate('AddHabit')}>
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate('AddHabit')}
+                        accessibilityRole="button"
+                        accessibilityLabel="Add a habit"
+                    >
                         <Text style={styles.linkText}>Add a habit</Text>
                     </TouchableOpacity>
                 </View>
