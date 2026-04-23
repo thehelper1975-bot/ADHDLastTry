@@ -1,30 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Battery, Zap, Flame } from 'lucide-react-native';
 import { useHabits } from '../hooks/useHabits';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 
 export default function HomeScreen() {
-  const { habits } = useHabits();
+  const { habits, refresh } = useHabits();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [energyLevel, setEnergyLevel] = useState<'low' | 'balanced' | 'high' | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
 
   const incompleteHabits = habits.filter(h => {
       const today = new Date().toISOString().split('T')[0];
       return !h.completedDates.includes(today);
   });
 
-  const getDopamineSuggestion = (level: string) => {
-    switch(level) {
-        case 'low': return "Drink a glass of water";
-        case 'balanced': return "Do 5 minutes of stretching";
-        case 'high': return "Tackle that one annoying email";
-        default: return "Pick an energy level";
-    }
+  const [suggestion, setSuggestion] = useState<string | null>(null);
+
+  const handleEnergyLevelSelect = (level: 'low' | 'balanced' | 'high') => {
+    setEnergyLevel(level);
+    // Dynamically import to avoid cyclic dependencies if any, but regular import works too
+    const { DOPAMINE_MENU } = require('../constants/dopamineMenu');
+    const items = DOPAMINE_MENU[level];
+    const randomItem = items[Math.floor(Math.random() * items.length)];
+    setSuggestion(randomItem);
   };
 
   return (
@@ -35,24 +43,24 @@ export default function HomeScreen() {
             <Text style={styles.subtitle}>What's your energy level right now?</Text>
 
             <View style={styles.energyContainer}>
-                <TouchableOpacity onPress={() => setEnergyLevel('low')} style={[styles.energyBtn, energyLevel === 'low' && styles.energyBtnActive]}>
+                <TouchableOpacity onPress={() => handleEnergyLevelSelect('low')} style={[styles.energyBtn, energyLevel === 'low' && styles.energyBtnActive]}>
                     <Battery size={24} color={energyLevel === 'low' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>Low</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setEnergyLevel('balanced')} style={[styles.energyBtn, energyLevel === 'balanced' && styles.energyBtnActive]}>
+                <TouchableOpacity onPress={() => handleEnergyLevelSelect('balanced')} style={[styles.energyBtn, energyLevel === 'balanced' && styles.energyBtnActive]}>
                     <Zap size={24} color={energyLevel === 'balanced' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>Balanced</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setEnergyLevel('high')} style={[styles.energyBtn, energyLevel === 'high' && styles.energyBtnActive]}>
+                <TouchableOpacity onPress={() => handleEnergyLevelSelect('high')} style={[styles.energyBtn, energyLevel === 'high' && styles.energyBtnActive]}>
                     <Flame size={24} color={energyLevel === 'high' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>High</Text>
                 </TouchableOpacity>
             </View>
 
-            {energyLevel && (
+            {suggestion && (
                 <View style={styles.suggestionCard}>
                     <Text style={styles.suggestionTitle}>Dopamine Menu Suggestion</Text>
-                    <Text style={styles.suggestionText}>{getDopamineSuggestion(energyLevel)}</Text>
+                    <Text style={styles.suggestionText}>{suggestion}</Text>
                 </View>
             )}
 
