@@ -26,6 +26,10 @@
 - RevenueCat keys in `config.ts` are placeholders and must be replaced.
 - Fastlane is configured but requires environment variables for authentication.
 
+## Next Steps - In sha Allah
+
+(No new steps, but editing functionality and dopamine menu were completed.)
+
 ## Files Modified Today
 - `adhd-habit-companion/src/screens/*.tsx` (All screens)
 - `adhd-habit-companion/src/navigation/AppNavigator.tsx`
