@@ -1,0 +1,12 @@
+npm warn exec The following package was not found and will be installed: serve@14.2.6
+ INFO  Accepting connections at http://localhost:3000
+ HTTP  4/25/2026 11:55:06 PM ::1 GET /
+ HTTP  4/25/2026 11:55:06 PM ::1 Returned 200 in 318 ms
+ HTTP  4/25/2026 11:55:07 PM ::1 GET /_expo/static/js/web/index-73fd24388a4fce53ea84b2796087be86.js
+ HTTP  4/25/2026 11:55:07 PM ::1 Returned 200 in 31 ms
+ HTTP  4/25/2026 11:56:13 PM ::1 GET /
+ HTTP  4/25/2026 11:56:13 PM ::1 Returned 200 in 2 ms
+ HTTP  4/25/2026 11:56:13 PM ::1 GET /_expo/static/js/web/index-73fd24388a4fce53ea84b2796087be86.js
+ HTTP  4/25/2026 11:56:13 PM ::1 Returned 200 in 2 ms
+
+ INFO  Gracefully shutting down. Please wait...
