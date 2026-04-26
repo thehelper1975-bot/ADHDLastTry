@@ -1,16 +1,17 @@
 # Next Session TODO - In sha Allah
 
-**Date Created:** 2026-01-29
+**Date Created:** 2026-04-25
 **App Name:** ADHD Habit Companion
-**Branch:** app/adhd-habit-companion
+**Branch:** app/adhd-habit-companion-1557900179856767432
 
 ## Current Status
 - Initialized Expo project with TypeScript, RevenueCat, and AsyncStorage.
 - Implemented Onboarding flow (4 screens).
-- Implemented core features: Dopamine Menu (Home), Habit Bundling (Add Habit), Flexible Progress (Streaks).
+- Implemented core features: Dopamine Menu (Home), Habit Bundling (Add Habit), Flexible Progress (Streaks), Habit Editing.
 - Implemented Paywall and Settings screens.
 - Created Fastlane configuration files.
 - Configuration for `app.json` updated with Bundle ID.
+- Successfully verified frontend rendering and functionality.
 
 ## Next Steps - In sha Allah
 1. **App Store Init**: Run `fastlane init_app` (requires Apple credentials).
@@ -32,11 +33,12 @@
 - `adhd-habit-companion/src/contexts/*.tsx`
 - `adhd-habit-companion/src/hooks/useHabits.ts`
 - `adhd-habit-companion/src/constants/*.ts`
+- `adhd-habit-companion/src/utils/streakCalculator.ts`
 - `adhd-habit-companion/app.json`
 - `adhd-habit-companion/App.tsx`
 - `adhd-habit-companion/fastlane/Fastfile` & `Appfile`
 
 ## How to Continue
 1. Read this file
-2. Checkout the correct branch: `git checkout app/adhd-habit-companion`
+2. Checkout the correct branch: `git checkout app/adhd-habit-companion-1557900179856767432`
 3. Start with the first item in "Next Steps"
