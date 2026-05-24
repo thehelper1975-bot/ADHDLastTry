@@ -1,22 +1,43 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView, Platform, Alert } from 'react-native';
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useHabits } from '../hooks/useHabits';
 import { useNavigation } from '@react-navigation/native';
-import { Plus, Check, Trash2 } from 'lucide-react-native';
+import { Plus, Check, Trash2, Edit2 } from 'lucide-react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { Habit } from '../types';
 
 export default function HabitListScreen() {
   const { habits, toggleHabitCompletion, deleteHabit } = useHabits();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const today = new Date().toISOString().split('T')[0];
 
-  const renderItem = ({ item }: { item: any }) => {
+  const confirmDelete = (id: string) => {
+      if (Platform.OS === 'web') {
+          if (window.confirm('Are you sure you want to delete this habit?')) {
+              deleteHabit(id);
+          }
+      } else {
+          Alert.alert(
+              'Delete Habit',
+              'Are you sure you want to delete this habit?',
+              [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Delete', style: 'destructive', onPress: () => deleteHabit(id) }
+              ]
+          );
+      }
+  };
+
+  const renderItem = ({ item }: { item: Habit }) => {
       const isCompleted = item.completedDates.includes(today);
       return (
-          <View style={styles.card}>
+          <TouchableOpacity
+              style={styles.card}
+              onLongPress={() => navigation.navigate('AddHabit', { habitId: item.id })}
+          >
               <TouchableOpacity
                 style={[styles.checkbox, isCompleted && styles.checkboxChecked]}
                 onPress={() => toggleHabitCompletion(item.id, today)}
@@ -28,10 +49,13 @@ export default function HabitListScreen() {
                   {item.isBundled && <Text style={styles.bundledText}>+ {item.bundledTask}</Text>}
                   <Text style={styles.streakText}>Streak: {item.streak} days</Text>
               </View>
-              <TouchableOpacity onPress={() => deleteHabit(item.id)}>
+              <TouchableOpacity onPress={() => navigation.navigate('AddHabit', { habitId: item.id })} style={styles.actionBtn}>
+                  <Edit2 size={20} color={COLORS.textSecondary} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => confirmDelete(item.id)} style={styles.actionBtn}>
                   <Trash2 size={20} color={COLORS.error} />
               </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
       );
   };
 
@@ -82,6 +106,7 @@ const styles = StyleSheet.create({
     completedText: { textDecorationLine: 'line-through', color: COLORS.textSecondary },
     bundledText: { color: COLORS.accent, fontSize: 14, marginTop: 4 },
     streakText: { color: COLORS.textSecondary, fontSize: 12, marginTop: 4 },
+    actionBtn: { padding: 8, marginLeft: 4 },
     empty: { alignItems: 'center', marginTop: 40 },
     emptyText: { color: COLORS.textSecondary, fontSize: 16 }
 });
