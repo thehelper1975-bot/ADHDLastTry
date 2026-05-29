@@ -4,28 +4,57 @@ import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Battery, Zap, Flame } from 'lucide-react-native';
 import { useHabits } from '../hooks/useHabits';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { DOPAMINE_MENU } from '../constants/dopamineMenu';
+import { EnergyLevel } from '../types';
 
 export default function HomeScreen() {
-  const { habits } = useHabits();
+  const { habits, refresh } = useHabits();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const [energyLevel, setEnergyLevel] = useState<'low' | 'balanced' | 'high' | null>(null);
+  const [energyLevel, setEnergyLevel] = useState<EnergyLevel | null>(null);
+  const [dopamineSuggestion, setDopamineSuggestion] = useState<string | null>(null);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
+
+  const handleEnergyLevelSelect = (level: EnergyLevel) => {
+      setEnergyLevel(level);
+      const suggestions = DOPAMINE_MENU[level];
+      const randomIndex = Math.floor(Math.random() * suggestions.length);
+      setDopamineSuggestion(suggestions[randomIndex]);
+  };
 
   const incompleteHabits = habits.filter(h => {
-      const today = new Date().toISOString().split('T')[0];
-      return !h.completedDates.includes(today);
-  });
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0];
 
-  const getDopamineSuggestion = (level: string) => {
-    switch(level) {
-        case 'low': return "Drink a glass of water";
-        case 'balanced': return "Do 5 minutes of stretching";
-        case 'high': return "Tackle that one annoying email";
-        default: return "Pick an energy level";
-    }
-  };
+      if (h.frequency === 'weekly') {
+          // Calculate start of week (Monday)
+          const day = today.getUTCDay();
+          const diff = today.getUTCDate() - day + (day === 0 ? -6 : 1);
+          const startOfWeek = new Date(today.setUTCDate(diff));
+          startOfWeek.setUTCHours(0,0,0,0);
+
+          const endOfWeek = new Date(startOfWeek);
+          endOfWeek.setUTCDate(endOfWeek.getUTCDate() + 6);
+          endOfWeek.setUTCHours(23,59,59,999);
+
+          // Check if any completed date is within this week
+          const hasCompletedThisWeek = h.completedDates.some(dateStr => {
+              const d = new Date(dateStr);
+              return d >= startOfWeek && d <= endOfWeek;
+          });
+          return !hasCompletedThisWeek;
+      }
+
+      // Default daily logic
+      return !h.completedDates.includes(todayStr);
+  });
 
   return (
     <LinearGradient colors={GRADIENTS.background} style={styles.container}>
@@ -35,24 +64,39 @@ export default function HomeScreen() {
             <Text style={styles.subtitle}>What's your energy level right now?</Text>
 
             <View style={styles.energyContainer}>
-                <TouchableOpacity onPress={() => setEnergyLevel('low')} style={[styles.energyBtn, energyLevel === 'low' && styles.energyBtnActive]}>
+                <TouchableOpacity
+                    onPress={() => handleEnergyLevelSelect('low')}
+                    style={[styles.energyBtn, energyLevel === 'low' && styles.energyBtnActive]}
+                    accessibilityRole="button"
+                    accessibilityLabel="Low energy"
+                >
                     <Battery size={24} color={energyLevel === 'low' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>Low</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setEnergyLevel('balanced')} style={[styles.energyBtn, energyLevel === 'balanced' && styles.energyBtnActive]}>
+                <TouchableOpacity
+                    onPress={() => handleEnergyLevelSelect('balanced')}
+                    style={[styles.energyBtn, energyLevel === 'balanced' && styles.energyBtnActive]}
+                    accessibilityRole="button"
+                    accessibilityLabel="Balanced energy"
+                >
                     <Zap size={24} color={energyLevel === 'balanced' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>Balanced</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setEnergyLevel('high')} style={[styles.energyBtn, energyLevel === 'high' && styles.energyBtnActive]}>
+                <TouchableOpacity
+                    onPress={() => handleEnergyLevelSelect('high')}
+                    style={[styles.energyBtn, energyLevel === 'high' && styles.energyBtnActive]}
+                    accessibilityRole="button"
+                    accessibilityLabel="High energy"
+                >
                     <Flame size={24} color={energyLevel === 'high' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>High</Text>
                 </TouchableOpacity>
             </View>
 
-            {energyLevel && (
+            {energyLevel && dopamineSuggestion && (
                 <View style={styles.suggestionCard}>
                     <Text style={styles.suggestionTitle}>Dopamine Menu Suggestion</Text>
-                    <Text style={styles.suggestionText}>{getDopamineSuggestion(energyLevel)}</Text>
+                    <Text style={styles.suggestionText}>{dopamineSuggestion}</Text>
                 </View>
             )}
 
@@ -67,7 +111,11 @@ export default function HomeScreen() {
             ) : (
                 <View style={styles.emptyState}>
                     <Text style={styles.emptyText}>No habits set for today yet!</Text>
-                    <TouchableOpacity onPress={() => navigation.navigate('AddHabit')}>
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate('AddHabit')}
+                        accessibilityRole="button"
+                        accessibilityLabel="Add a habit"
+                    >
                         <Text style={styles.linkText}>Add a habit</Text>
                     </TouchableOpacity>
                 </View>

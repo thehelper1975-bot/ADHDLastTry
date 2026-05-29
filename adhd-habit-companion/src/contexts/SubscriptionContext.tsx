@@ -23,6 +23,10 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     const init = async () => {
       try {
         if (CONFIG.REVENUECAT.API_KEY) {
+            if (CONFIG.REVENUECAT.API_KEY.includes('placeholder')) {
+                console.warn('RevenueCat API Key is a placeholder. Skipping initialization.');
+                return;
+            }
             await Purchases.configure({ apiKey: CONFIG.REVENUECAT.API_KEY! });
 
             const info = await Purchases.getCustomerInfo();
