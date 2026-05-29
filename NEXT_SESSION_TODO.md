@@ -11,6 +11,7 @@
 - Implemented Paywall and Settings screens.
 - Created Fastlane configuration files.
 - Configuration for `app.json` updated with Bundle ID.
+- **NEW**: Implemented comprehensive Habit Editing (AddHabit screen handles edit mode via habitId, HabitList card long press & pencil icon), real UTC-based Streak Calculator logic, and UI Synchronization via `useFocusEffect` across all relevant screens. Platform-specific confirmation alerts added for habit deletion. App is verified functioning successfully on web via Playwright testing.
 
 ## Next Steps - In sha Allah
 1. **App Store Init**: Run `fastlane init_app` (requires Apple credentials).
@@ -27,14 +28,13 @@
 - Fastlane is configured but requires environment variables for authentication.
 
 ## Files Modified Today
-- `adhd-habit-companion/src/screens/*.tsx` (All screens)
-- `adhd-habit-companion/src/navigation/AppNavigator.tsx`
-- `adhd-habit-companion/src/contexts/*.tsx`
 - `adhd-habit-companion/src/hooks/useHabits.ts`
-- `adhd-habit-companion/src/constants/*.ts`
+- `adhd-habit-companion/src/utils/streakCalculator.ts`
+- `adhd-habit-companion/src/screens/HabitListScreen.tsx`
+- `adhd-habit-companion/src/screens/AddHabitScreen.tsx`
+- `adhd-habit-companion/src/screens/HomeScreen.tsx`
+- `adhd-habit-companion/src/screens/ProgressScreen.tsx`
 - `adhd-habit-companion/app.json`
-- `adhd-habit-companion/App.tsx`
-- `adhd-habit-companion/fastlane/Fastfile` & `Appfile`
 
 ## How to Continue
 1. Read this file
