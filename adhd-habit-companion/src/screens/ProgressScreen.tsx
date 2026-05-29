@@ -4,9 +4,16 @@ import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useHabits } from '../hooks/useHabits';
 import { TrendingUp, Award, Calendar } from 'lucide-react-native';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function ProgressScreen() {
-  const { habits } = useHabits();
+  const { habits, refresh } = useHabits();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
 
   const totalCompletions = habits.reduce((acc, h) => acc + h.completedDates.length, 0);
   const currentLongestStreak = Math.max(0, ...habits.map(h => h.streak));
