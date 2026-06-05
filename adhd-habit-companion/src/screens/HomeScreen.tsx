@@ -4,28 +4,61 @@ import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Battery, Zap, Flame } from 'lucide-react-native';
 import { useHabits } from '../hooks/useHabits';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { dopamineMenu } from '../constants/dopamineMenu';
+import { EnergyLevel } from '../types';
 
 export default function HomeScreen() {
-  const { habits } = useHabits();
+  const { habits, refresh } = useHabits();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const [energyLevel, setEnergyLevel] = useState<'low' | 'balanced' | 'high' | null>(null);
+  const [energyLevel, setEnergyLevel] = useState<EnergyLevel | null>(null);
+  const [currentSuggestion, setCurrentSuggestion] = useState<string | null>(null);
 
-  const incompleteHabits = habits.filter(h => {
-      const today = new Date().toISOString().split('T')[0];
-      return !h.completedDates.includes(today);
-  });
+  useFocusEffect(
+    React.useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
 
-  const getDopamineSuggestion = (level: string) => {
-    switch(level) {
-        case 'low': return "Drink a glass of water";
-        case 'balanced': return "Do 5 minutes of stretching";
-        case 'high': return "Tackle that one annoying email";
-        default: return "Pick an energy level";
+  const handleEnergyLevelSelect = (level: EnergyLevel) => {
+    setEnergyLevel(level);
+    const options = dopamineMenu[level];
+    if (options && options.length > 0) {
+      const randomTask = options[Math.floor(Math.random() * options.length)];
+      setCurrentSuggestion(randomTask);
     }
   };
+
+  const incompleteHabits = habits.filter(h => {
+      const now = new Date();
+      const today = now.toISOString().split('T')[0];
+
+      if (h.frequency === 'daily') {
+          return !h.completedDates.includes(today);
+      } else if (h.frequency === 'weekly') {
+          // Check if any completed date falls in current UTC week
+          const currentDayOfWeek = now.getUTCDay();
+          const distanceToMonday = (currentDayOfWeek + 6) % 7; // Monday is 0
+
+          const monday = new Date(now);
+          monday.setUTCDate(now.getUTCDate() - distanceToMonday);
+          monday.setUTCHours(0,0,0,0);
+
+          const sunday = new Date(monday);
+          sunday.setUTCDate(monday.getUTCDate() + 6);
+          sunday.setUTCHours(23,59,59,999);
+
+          const completedThisWeek = h.completedDates.some(dateStr => {
+              const d = new Date(dateStr);
+              return d >= monday && d <= sunday;
+          });
+
+          return !completedThisWeek;
+      }
+      return true;
+  });
 
   return (
     <LinearGradient colors={GRADIENTS.background} style={styles.container}>
@@ -35,24 +68,24 @@ export default function HomeScreen() {
             <Text style={styles.subtitle}>What's your energy level right now?</Text>
 
             <View style={styles.energyContainer}>
-                <TouchableOpacity onPress={() => setEnergyLevel('low')} style={[styles.energyBtn, energyLevel === 'low' && styles.energyBtnActive]}>
+                <TouchableOpacity onPress={() => handleEnergyLevelSelect('low')} style={[styles.energyBtn, energyLevel === 'low' && styles.energyBtnActive]}>
                     <Battery size={24} color={energyLevel === 'low' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>Low</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setEnergyLevel('balanced')} style={[styles.energyBtn, energyLevel === 'balanced' && styles.energyBtnActive]}>
+                <TouchableOpacity onPress={() => handleEnergyLevelSelect('balanced')} style={[styles.energyBtn, energyLevel === 'balanced' && styles.energyBtnActive]}>
                     <Zap size={24} color={energyLevel === 'balanced' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>Balanced</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setEnergyLevel('high')} style={[styles.energyBtn, energyLevel === 'high' && styles.energyBtnActive]}>
+                <TouchableOpacity onPress={() => handleEnergyLevelSelect('high')} style={[styles.energyBtn, energyLevel === 'high' && styles.energyBtnActive]}>
                     <Flame size={24} color={energyLevel === 'high' ? '#FFF' : COLORS.textSecondary} />
                     <Text style={styles.energyText}>High</Text>
                 </TouchableOpacity>
             </View>
 
-            {energyLevel && (
+            {energyLevel && currentSuggestion && (
                 <View style={styles.suggestionCard}>
                     <Text style={styles.suggestionTitle}>Dopamine Menu Suggestion</Text>
-                    <Text style={styles.suggestionText}>{getDopamineSuggestion(energyLevel)}</Text>
+                    <Text style={styles.suggestionText}>{currentSuggestion}</Text>
                 </View>
             )}
 
