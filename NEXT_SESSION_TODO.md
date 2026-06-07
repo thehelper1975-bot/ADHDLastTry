@@ -8,6 +8,7 @@
 - Initialized Expo project with TypeScript, RevenueCat, and AsyncStorage.
 - Implemented Onboarding flow (4 screens).
 - Implemented core features: Dopamine Menu (Home), Habit Bundling (Add Habit), Flexible Progress (Streaks).
+- Implemented actual real streak calculation logic in `src/utils/streakCalculator.ts` and integrated it into `useHabits.ts`.
 - Implemented Paywall and Settings screens.
 - Created Fastlane configuration files.
 - Configuration for `app.json` updated with Bundle ID.
@@ -31,6 +32,7 @@
 - `adhd-habit-companion/src/navigation/AppNavigator.tsx`
 - `adhd-habit-companion/src/contexts/*.tsx`
 - `adhd-habit-companion/src/hooks/useHabits.ts`
+- `adhd-habit-companion/src/utils/streakCalculator.ts` (newly created)
 - `adhd-habit-companion/src/constants/*.ts`
 - `adhd-habit-companion/app.json`
 - `adhd-habit-companion/App.tsx`
