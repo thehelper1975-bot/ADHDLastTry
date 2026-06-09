@@ -11,6 +11,11 @@
 - Implemented Paywall and Settings screens.
 - Created Fastlane configuration files.
 - Configuration for `app.json` updated with Bundle ID.
+- Replaced the dummy streak generator with an actual calculation algorithm supporting grace periods.
+- Extracted dopamine menu string items into a categorized `constants` array and linked it dynamically to the UI.
+- Implemented native and web Delete confirmations for Habits.
+- Connected edit flow passing `habitId` via navigation properties and populating `AddHabitScreen` safely.
+- Strengthened cross-tab data synchronization via `useFocusEffect` across core screens.
 
 ## Next Steps - In sha Allah
 1. **App Store Init**: Run `fastlane init_app` (requires Apple credentials).
@@ -32,9 +37,11 @@
 - `adhd-habit-companion/src/contexts/*.tsx`
 - `adhd-habit-companion/src/hooks/useHabits.ts`
 - `adhd-habit-companion/src/constants/*.ts`
+- `adhd-habit-companion/src/utils/streakCalculator.ts`
 - `adhd-habit-companion/app.json`
 - `adhd-habit-companion/App.tsx`
 - `adhd-habit-companion/fastlane/Fastfile` & `Appfile`
+- `adhd-habit-companion/package.json`
 
 ## How to Continue
 1. Read this file
