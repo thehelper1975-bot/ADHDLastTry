@@ -1,28 +1,58 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Switch, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useHabits } from '../hooks/useHabits';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { RootStackParamList } from '../navigation/AppNavigator';
 import { X } from 'lucide-react-native';
 
+type AddHabitScreenRouteProp = RouteProp<RootStackParamList, 'AddHabit'>;
+
 export default function AddHabitScreen() {
-  const { addHabit } = useHabits();
+  const { habits, addHabit, updateHabit, refresh } = useHabits();
   const navigation = useNavigation();
+  const route = useRoute<AddHabitScreenRouteProp>();
+  const habitId = route.params?.habitId;
 
   const [title, setTitle] = useState('');
   const [isBundled, setIsBundled] = useState(false);
   const [bundledTask, setBundledTask] = useState('');
 
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  useEffect(() => {
+    if (habitId && habits.length > 0 && !title) {
+        const habitToEdit = habits.find(h => h.id === habitId);
+        if (habitToEdit) {
+            setTitle(habitToEdit.title);
+            setIsBundled(habitToEdit.isBundled);
+            if (habitToEdit.bundledTask) {
+                setBundledTask(habitToEdit.bundledTask);
+            }
+        }
+    }
+  }, [habitId, habits, title]);
+
   const handleSave = async () => {
       if (!title.trim()) return;
 
-      await addHabit({
-          title,
-          isBundled,
-          bundledTask: isBundled ? bundledTask : undefined,
-          frequency: 'daily'
-      });
+      if (habitId) {
+          await updateHabit(habitId, {
+              title,
+              isBundled,
+              bundledTask: isBundled ? bundledTask : undefined,
+          });
+      } else {
+          await addHabit({
+              title,
+              isBundled,
+              bundledTask: isBundled ? bundledTask : undefined,
+              frequency: 'daily'
+          });
+      }
 
       navigation.goBack();
   };
@@ -31,8 +61,8 @@ export default function AddHabitScreen() {
     <LinearGradient colors={GRADIENTS.background} style={styles.container}>
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.header}>
-                <Text style={styles.title}>New Habit</Text>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Text style={styles.title}>{habitId ? 'Edit Habit' : 'New Habit'}</Text>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Close" onPress={() => navigation.goBack()}>
                     <X size={24} color={COLORS.textSecondary} />
                 </TouchableOpacity>
             </View>
@@ -74,8 +104,8 @@ export default function AddHabitScreen() {
                     </View>
                 )}
 
-                <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
-                    <Text style={styles.saveBtnText}>Create Habit</Text>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel={habitId ? 'Save Habit' : 'Create Habit'} style={styles.saveBtn} onPress={handleSave}>
+                    <Text style={styles.saveBtnText}>{habitId ? 'Save Habit' : 'Create Habit'}</Text>
                 </TouchableOpacity>
             </View>
         </SafeAreaView>
