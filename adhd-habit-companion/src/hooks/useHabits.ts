@@ -1,18 +1,27 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Habit } from '../types';
+import { calculateStreak } from '../utils/streakCalculator';
 
 const HABITS_KEY = '@habits_v1';
 
 export const useHabits = () => {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const habitsRef = useRef<Habit[]>([]);
 
   const loadHabits = useCallback(async () => {
     try {
       const json = await AsyncStorage.getItem(HABITS_KEY);
       if (json) {
-        setHabits(JSON.parse(json));
+        const parsed: Habit[] = JSON.parse(json);
+        // Recalculate streaks on load
+        const withUpdatedStreaks = parsed.map(h => ({
+          ...h,
+          streak: calculateStreak(h.completedDates)
+        }));
+        habitsRef.current = withUpdatedStreaks;
+        setHabits(withUpdatedStreaks);
       }
     } catch (e) {
       console.error('Failed to load habits', e);
@@ -25,7 +34,7 @@ export const useHabits = () => {
     loadHabits();
   }, [loadHabits]);
 
-  const addHabit = async (habit: Omit<Habit, 'id' | 'completedDates' | 'streak' | 'createdAt'>) => {
+  const addHabit = useCallback(async (habit: Omit<Habit, 'id' | 'completedDates' | 'streak' | 'createdAt'>) => {
     const newHabit: Habit = {
       ...habit,
       id: Date.now().toString(),
@@ -33,13 +42,26 @@ export const useHabits = () => {
       streak: 0,
       createdAt: new Date().toISOString(),
     };
-    const updated = [...habits, newHabit];
+    const updated = [...habitsRef.current, newHabit];
+    habitsRef.current = updated;
     setHabits(updated);
     await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
-  };
+  }, []);
 
-  const toggleHabitCompletion = async (id: string, date: string) => {
-    const updated = habits.map(h => {
+  const updateHabit = useCallback(async (id: string, updates: Partial<Habit>) => {
+    const updated = habitsRef.current.map(h => {
+      if (h.id === id) {
+        return { ...h, ...updates };
+      }
+      return h;
+    });
+    habitsRef.current = updated;
+    setHabits(updated);
+    await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
+  }, []);
+
+  const toggleHabitCompletion = useCallback(async (id: string, date: string) => {
+    const updated = habitsRef.current.map(h => {
       if (h.id === id) {
         const isCompleted = h.completedDates.includes(date);
         let newCompletedDates = isCompleted
@@ -52,20 +74,25 @@ export const useHabits = () => {
       }
       return h;
     });
+    habitsRef.current = updated;
     setHabits(updated);
     await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
-  };
+  }, []);
 
-  const deleteHabit = async (id: string) => {
-      const updated = habits.filter(h => h.id !== id);
+  const deleteHabit = useCallback(async (id: string) => {
+      const updated = habitsRef.current.filter(h => h.id !== id);
+      habitsRef.current = updated;
       setHabits(updated);
       await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updated));
-  }
+  }, []);
 
-  return { habits, isLoading, addHabit, toggleHabitCompletion, deleteHabit, refresh: loadHabits };
+  return {
+    habits,
+    isLoading,
+    addHabit,
+    updateHabit,
+    toggleHabitCompletion,
+    deleteHabit,
+    refresh: loadHabits
+  };
 };
-
-function calculateStreak(dates: string[]): number {
-    // Placeholder for actual streak logic
-    return dates.length;
-}
