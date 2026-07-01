@@ -1,28 +1,61 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Switch, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { COLORS, GRADIENTS } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useHabits } from '../hooks/useHabits';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { X } from 'lucide-react-native';
+import { RootStackParamList } from '../navigation/AppNavigator';
+
+type AddHabitScreenRouteProp = RouteProp<RootStackParamList, 'AddHabit'>;
 
 export default function AddHabitScreen() {
-  const { addHabit } = useHabits();
+  const { habits, addHabit, updateHabit, refresh } = useHabits();
   const navigation = useNavigation();
+  const route = useRoute<AddHabitScreenRouteProp>();
+
+  const habitId = route.params?.habitId;
+  const isEditing = !!habitId;
 
   const [title, setTitle] = useState('');
   const [isBundled, setIsBundled] = useState(false);
   const [bundledTask, setBundledTask] = useState('');
+  const [frequency, setFrequency] = useState<'daily' | 'weekly'>('daily');
+
+  useEffect(() => {
+      if (isEditing && habits.length > 0 && !title) {
+          const habitToEdit = habits.find(h => h.id === habitId);
+          if (habitToEdit) {
+              setTitle(habitToEdit.title);
+              setIsBundled(habitToEdit.isBundled);
+              setBundledTask(habitToEdit.bundledTask || '');
+              setFrequency(habitToEdit.frequency);
+          }
+      }
+  }, [isEditing, habitId, habits, title]);
+
+  useEffect(() => {
+      refresh(); // Ensure we have the latest habits when we mount
+  }, [refresh]);
 
   const handleSave = async () => {
       if (!title.trim()) return;
 
-      await addHabit({
-          title,
-          isBundled,
-          bundledTask: isBundled ? bundledTask : undefined,
-          frequency: 'daily'
-      });
+      if (isEditing) {
+          await updateHabit(habitId, {
+              title,
+              isBundled,
+              bundledTask: isBundled ? bundledTask : undefined,
+              frequency
+          });
+      } else {
+          await addHabit({
+              title,
+              isBundled,
+              bundledTask: isBundled ? bundledTask : undefined,
+              frequency
+          });
+      }
 
       navigation.goBack();
   };
@@ -31,8 +64,8 @@ export default function AddHabitScreen() {
     <LinearGradient colors={GRADIENTS.background} style={styles.container}>
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.header}>
-                <Text style={styles.title}>New Habit</Text>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Text style={styles.title}>{isEditing ? 'Edit Habit' : 'New Habit'}</Text>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Close" onPress={() => navigation.goBack()}>
                     <X size={24} color={COLORS.textSecondary} />
                 </TouchableOpacity>
             </View>
@@ -47,6 +80,29 @@ export default function AddHabitScreen() {
                     onChangeText={setTitle}
                     autoFocus
                 />
+
+                <View style={styles.switchRow}>
+                    <View>
+                        <Text style={styles.label}>Frequency</Text>
+                        <Text style={styles.hint}>Daily or weekly goal?</Text>
+                    </View>
+                    <View style={styles.frequencyTabs}>
+                        <TouchableOpacity
+                            accessibilityRole="button"
+                            style={[styles.freqTab, frequency === 'daily' && styles.freqTabActive]}
+                            onPress={() => setFrequency('daily')}
+                        >
+                            <Text style={[styles.freqTabText, frequency === 'daily' && styles.freqTabTextActive]}>Daily</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            accessibilityRole="button"
+                            style={[styles.freqTab, frequency === 'weekly' && styles.freqTabActive]}
+                            onPress={() => setFrequency('weekly')}
+                        >
+                            <Text style={[styles.freqTabText, frequency === 'weekly' && styles.freqTabTextActive]}>Weekly</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
 
                 <View style={styles.switchRow}>
                     <View>
@@ -74,8 +130,8 @@ export default function AddHabitScreen() {
                     </View>
                 )}
 
-                <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
-                    <Text style={styles.saveBtnText}>Create Habit</Text>
+                <TouchableOpacity accessibilityRole="button" style={styles.saveBtn} onPress={handleSave}>
+                    <Text style={styles.saveBtnText}>{isEditing ? 'Save Changes' : 'Create Habit'}</Text>
                 </TouchableOpacity>
             </View>
         </SafeAreaView>
@@ -96,6 +152,11 @@ const styles = StyleSheet.create({
     },
     switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
     hint: { color: COLORS.textSecondary, fontSize: 14 },
+    frequencyTabs: { flexDirection: 'row', backgroundColor: COLORS.surface, borderRadius: 8, borderWidth: 1, borderColor: COLORS.border, overflow: 'hidden' },
+    freqTab: { paddingVertical: 6, paddingHorizontal: 12 },
+    freqTabActive: { backgroundColor: COLORS.secondary },
+    freqTabText: { color: COLORS.textSecondary, fontWeight: '500' },
+    freqTabTextActive: { color: '#FFF' },
     bundledInputContainer: { marginTop: 8 },
     saveBtn: {
         backgroundColor: COLORS.primary, padding: 18, borderRadius: 16, alignItems: 'center', marginTop: 24,
