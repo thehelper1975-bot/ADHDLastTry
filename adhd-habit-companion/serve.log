@@ -1,0 +1,22 @@
+npm warn exec The following package was not found and will be installed: serve@14.2.6
+ INFO  Accepting connections at http://localhost:3000
+ HTTP  7/5/2026 11:45:52 PM ::1 GET /
+ HTTP  7/5/2026 11:45:52 PM ::1 Returned 200 in 276 ms
+ HTTP  7/5/2026 11:45:53 PM ::1 GET /_expo/static/js/web/index-e672d1421221c47516fdaf2cae01445f.js
+ HTTP  7/5/2026 11:45:53 PM ::1 Returned 200 in 26 ms
+ HTTP  7/5/2026 11:47:33 PM ::1 GET /
+ HTTP  7/5/2026 11:47:33 PM ::1 Returned 200 in 2 ms
+ HTTP  7/5/2026 11:47:33 PM ::1 GET /_expo/static/js/web/index-e672d1421221c47516fdaf2cae01445f.js
+ HTTP  7/5/2026 11:47:33 PM ::1 Returned 200 in 2 ms
+ HTTP  7/5/2026 11:47:56 PM ::1 GET /
+ HTTP  7/5/2026 11:47:56 PM ::1 Returned 200 in 2 ms
+ HTTP  7/5/2026 11:47:56 PM ::1 GET /_expo/static/js/web/index-e672d1421221c47516fdaf2cae01445f.js
+ HTTP  7/5/2026 11:47:56 PM ::1 Returned 200 in 1 ms
+ HTTP  7/5/2026 11:48:53 PM ::1 GET /
+ HTTP  7/5/2026 11:48:53 PM ::1 Returned 200 in 1 ms
+ HTTP  7/5/2026 11:48:53 PM ::1 GET /_expo/static/js/web/index-e672d1421221c47516fdaf2cae01445f.js
+ HTTP  7/5/2026 11:48:53 PM ::1 Returned 200 in 1 ms
+ HTTP  7/5/2026 11:50:18 PM ::1 GET /
+ HTTP  7/5/2026 11:50:18 PM ::1 Returned 200 in 3 ms
+ HTTP  7/5/2026 11:50:18 PM ::1 GET /_expo/static/js/web/index-e672d1421221c47516fdaf2cae01445f.js
+ HTTP  7/5/2026 11:50:18 PM ::1 Returned 200 in 2 ms
